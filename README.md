@@ -74,7 +74,7 @@ The default recipe performs the complete experiment:
 4. reports BLEU, COMET, chrF++, FTL, FRD, LAAL-CU, RTF, and revision-aware metrics;
 5. checks hardware-independent results against the released values.
 
-FLEURS TEST audio is approximately 277 MB. The first run also downloads `Qwen/Qwen3-ASR-1.7B` and `Unbabel/wmt22-comet-da`. Data and predictions are written to `data/` and `results/`; both are ignored by Git.
+FLEURS TEST audio is approximately 277 MB. All five directions share the single copy under `data/fleurs/audio/test`; later preparation calls reuse it. The first run also downloads `Qwen/Qwen3-ASR-1.7B` and `Unbabel/wmt22-comet-da`. Data and predictions are written to `data/` and `results/`; both are ignored by Git.
 
 ## Reproduce all five directions
 

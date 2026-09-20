@@ -38,8 +38,7 @@ def read_tsv(path: Path) -> list[dict]:
     return rows
 
 
-def extract_audio(archive: Path, output: Path, filenames: set[str]) -> None:
-    audio_root = output / "audio" / "test"
+def extract_audio(archive: Path, audio_root: Path, filenames: set[str]) -> None:
     audio_root.mkdir(parents=True, exist_ok=True)
     missing = {name for name in filenames if not (audio_root / name).is_file()}
     if not missing:
@@ -106,11 +105,14 @@ def main() -> None:
     if missing_references:
         raise ValueError(f"missing references for sentence IDs: {missing_references[:5]}")
 
-    extract_audio(archive, output, {row["filename"] for row in source_rows})
+    # All five directions use the same English recordings. Keep one shared copy
+    # next to the direction directories instead of extracting it five times.
+    audio_root = output.parent / "audio" / "test"
+    extract_audio(archive, audio_root, {row["filename"] for row in source_rows})
     manifest = output / "test.jsonl"
     with manifest.open("w", encoding="utf-8", newline="\n") as stream:
         for row in source_rows:
-            audio = output / "audio" / "test" / row["filename"]
+            audio = audio_root / row["filename"]
             recording_id = Path(row["filename"]).stem
             item = {
                 "id": f"fleurs_eng_{row['sentence_id']}__{recording_id}",
@@ -118,7 +120,7 @@ def main() -> None:
                 "split": "test",
                 "source_lang": "en",
                 "target_lang": args.target,
-                "audio": f"audio/test/{row['filename']}",
+                "audio": (Path("..") / "audio" / "test" / row["filename"]).as_posix(),
                 "audio_duration_sec": wav_duration(audio, row["declared_samples"]),
                 "source_text": row["source_text"],
                 "target_text": references[row["sentence_id"]],
