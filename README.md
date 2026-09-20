@@ -168,7 +168,16 @@ python scripts/infer_fleurs.py \
   --manifest data/fleurs/en-zh/test.jsonl \
   --checkpoint results/training/pdo_s2tt.pt \
   --output results/trained/en-zh/predictions.jsonl
+
+python scripts/evaluate_fleurs.py \
+  --target zh \
+  --manifest data/fleurs/en-zh/test.jsonl \
+  --predictions results/trained/en-zh/predictions.jsonl \
+  --output results/trained/en-zh/metrics.json \
+  --no-reference-check
 ```
+
+Repeat the two commands for the other four targets, then aggregate them with `python scripts/evaluate_macro.py --results-dir results/trained --output results/trained/macro.json`. The reference check is disabled here because an independently sampled training run is not expected to match the released checkpoint exactly.
 
 On an offline machine, place the base model at `checkpoints/Qwen3-ASR-1.7B` or pass `--base-model /path/to/Qwen3-ASR-1.7B` to `scripts/train_pdo.py`.
 

@@ -48,6 +48,12 @@ def main() -> None:
     parser.add_argument("--skip-comet", action="store_true")
     parser.add_argument("--comet-batch-size", type=int, default=16)
     parser.add_argument("--limit", type=int, help="score only the first N manifest examples")
+    parser.add_argument(
+        "--reference-check",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="compare a complete run with the released checkpoint (disable for a newly trained policy)",
+    )
     args = parser.parse_args()
     manifest = args.manifest or Path(f"data/fleurs/en-{args.target}/test.jsonl")
     predictions = args.predictions or Path(f"results/fleurs/en-{args.target}/predictions.jsonl")
@@ -85,7 +91,7 @@ def main() -> None:
         "paper_result": EXPECTED[args.target],
         "note": "FRD and RTF are hardware-dependent; the paper values use one RTX 4090.",
     }
-    if len(rows) == 647:
+    if len(rows) == 647 and args.reference_check:
         deterministic = {
             "BLEU": quality["BLEU"], "chrF++": quality["chrF++"],
             "FTL": latency["FTL"]["mean"],
@@ -119,6 +125,11 @@ def main() -> None:
             "checks": checks,
             "excluded_as_hardware_dependent": ["FRD", "RTF"],
             "note": None if complete else "COMET was skipped; the full check is incomplete.",
+        }
+    elif not args.reference_check:
+        result["reproduction_check"] = {
+            "enabled": False,
+            "note": "Reference matching is disabled for this independently trained checkpoint.",
         }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
