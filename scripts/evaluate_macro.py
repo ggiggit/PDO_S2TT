@@ -76,6 +76,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--results-dir", type=Path, default=Path("results/fleurs"))
     parser.add_argument("--output", type=Path, default=Path("results/fleurs/macro.json"))
+    parser.add_argument(
+        "--reference-check",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="compare with the released checkpoint (disable for a newly trained policy)",
+    )
     args = parser.parse_args()
 
     rows = [load(args.results_dir / f"en-{target}" / "metrics.json") for target in TARGETS]
@@ -114,41 +120,47 @@ def main() -> None:
             "latency percentiles are computed over all 3,235 trajectories."
         ),
     }
-    deterministic = {
-        "BLEU": quality["BLEU"],
-        "chrF++": quality["chrF++"],
-        "FTL": result["latency"]["FTL"]["mean"],
-        "LAAL_CU": result["latency"]["LAAL_CU"]["mean"],
-        "LAAL_CU_P90": result["latency"]["LAAL_CU"]["p90"],
-        "NormErase": result["revision"]["normalized_erasure"]["mean"],
-        "AgeErase": result["revision"]["age_weighted_erasure"]["mean"],
-        "FirstStable": result["revision"]["first_stable_unit"]["mean"],
-        "MeanFinalization": result["revision"]["mean_finalization"]["mean"],
-    }
-    observed = dict(deterministic)
-    complete = quality["COMET"] is not None
-    if complete:
-        observed["COMET"] = quality["COMET"]
-    checks = {
-        key: {
-            "observed": value,
-            "expected": PAPER_MACRO[key],
-            "tolerance": 0.02 if key == "COMET" else 0.01,
-            "passed": abs(value - PAPER_MACRO[key])
-            <= (0.02 if key == "COMET" else 0.01),
+    if args.reference_check:
+        deterministic = {
+            "BLEU": quality["BLEU"],
+            "chrF++": quality["chrF++"],
+            "FTL": result["latency"]["FTL"]["mean"],
+            "LAAL_CU": result["latency"]["LAAL_CU"]["mean"],
+            "LAAL_CU_P90": result["latency"]["LAAL_CU"]["p90"],
+            "NormErase": result["revision"]["normalized_erasure"]["mean"],
+            "AgeErase": result["revision"]["age_weighted_erasure"]["mean"],
+            "FirstStable": result["revision"]["first_stable_unit"]["mean"],
+            "MeanFinalization": result["revision"]["mean_finalization"]["mean"],
         }
-        for key, value in observed.items()
-    }
-    result["reproduction_check"] = {
-        "complete": complete,
-        "passed": all(item["passed"] for item in checks.values()) if complete else None,
-        "deterministic_passed": all(
-            checks[key]["passed"] for key in deterministic
-        ),
-        "checks": checks,
-        "excluded_as_hardware_dependent": ["FRD", "FRD_P90", "RTF"],
-        "note": None if complete else "COMET was skipped; the full check is incomplete.",
-    }
+        observed = dict(deterministic)
+        complete = quality["COMET"] is not None
+        if complete:
+            observed["COMET"] = quality["COMET"]
+        checks = {
+            key: {
+                "observed": value,
+                "expected": PAPER_MACRO[key],
+                "tolerance": 0.02 if key == "COMET" else 0.01,
+                "passed": abs(value - PAPER_MACRO[key])
+                <= (0.02 if key == "COMET" else 0.01),
+            }
+            for key, value in observed.items()
+        }
+        result["reproduction_check"] = {
+            "complete": complete,
+            "passed": all(item["passed"] for item in checks.values()) if complete else None,
+            "deterministic_passed": all(
+                checks[key]["passed"] for key in deterministic
+            ),
+            "checks": checks,
+            "excluded_as_hardware_dependent": ["FRD", "FRD_P90", "RTF"],
+            "note": None if complete else "COMET was skipped; the full check is incomplete.",
+        }
+    else:
+        result["reproduction_check"] = {
+            "enabled": False,
+            "note": "Reference matching is disabled for this independently trained checkpoint.",
+        }
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
@@ -156,7 +168,9 @@ def main() -> None:
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     check = result["reproduction_check"]
-    if check["deterministic_passed"] is False or check["passed"] is False:
+    if args.reference_check and (
+        check["deterministic_passed"] is False or check["passed"] is False
+    ):
         raise SystemExit("the macro metrics do not match the released result")
 
 
