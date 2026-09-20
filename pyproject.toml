@@ -15,7 +15,7 @@ dependencies = [
   "numpy>=1.26,<2.0",
   "peft==0.19.1",
   "qwen-asr==0.0.6",
-  "sacrebleu[ja]>=2.5,<2.6",
+  "sacrebleu[ja]==2.6.0",
   "soundfile==0.14.0",
   "torch>=2.8,<2.9",
   "transformers==4.57.6",
