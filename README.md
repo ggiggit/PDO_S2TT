@@ -33,8 +33,12 @@ PDO translates a growing English speech stream directly into a revisable target-
 | Eq. (2): persistent-delivery utility | [`trajectory_ledger`](src/pdo_s2tt/training/reward.py#L88) |
 | Eq. (3): full-trajectory return | [`full_trajectory_returns`](src/pdo_s2tt/training/reward.py#L130) |
 | Eq. (4): clipped PDO loss | [`pdo_loss`](src/pdo_s2tt/training/policy.py#L229) |
+| Reward text normalization | [`units`](src/pdo_s2tt/training/reward.py#L26) |
+| Group-relative baseline / zero variance | [`_standardize`](src/pdo_s2tt/training/reward.py#L140) |
 | G=4 behavior-policy rollout | [`sample_group`](src/pdo_s2tt/training/policy.py#L137), [`rollout`](src/pdo_s2tt/training/trainer.py#L37) |
+| Behavior temperature and saved log-probabilities | [`sample_group`](src/pdo_s2tt/training/policy.py#L137), [`action_logps`](src/pdo_s2tt/training/policy.py#L213) |
 | Synchronized policy update | [`update`](src/pdo_s2tt/training/trainer.py#L248) |
+| Frozen multilingual TRAIN inventory | [`validate_released_manifest`](src/pdo_s2tt/training/data.py#L21) |
 | LAAL-CU | [`stable_emission_times`](src/pdo_s2tt/simultaneous_metrics.py#L24), [`sentence_latency_metrics`](src/pdo_s2tt/simultaneous_metrics.py#L195) |
 | Erasure and finalization | [`revision_record`](src/pdo_s2tt/evaluation.py#L140) |
 | Table 3 controlled RL variants | [Exact definitions](#controlled-rl-baselines-in-table-3) |
@@ -161,6 +165,8 @@ bash train_pdo.sh
 ```
 
 If the official FLEURS files are already available, both preparation scripts accept `--tsv` and `--archive`; this bypasses network access while retaining all record-count, identity, WAV-format, and reference checks.
+
+Before model loading, a full training run verifies the exact released order, IDs, language directions, target text, and the 2,600-recording × five-direction grouping. An altered or merely similar manifest is rejected instead of being reported as a paper reproduction.
 
 The final inference checkpoint is written to `results/training/pdo_s2tt.pt`. It can be passed directly to `scripts/infer_fleurs.py`:
 

@@ -16,11 +16,8 @@ import torch
 import torch.distributed as dist
 
 from pdo_s2tt.training.model import TrainingModel
+from pdo_s2tt.training.data import validate_released_manifest
 from pdo_s2tt.training.trainer import capture_proximal, rollout, update
-
-
-LANGUAGES = {"zh", "de", "es", "ja", "fr"}
-FULL_TRAIN_UNITS = 13_000
 
 
 def read_manifest(path: Path) -> list[dict]:
@@ -75,11 +72,12 @@ def main() -> None:
     device = f"cuda:{local_rank}" if world > 1 else "cuda:0"
     rows = read_manifest(args.manifest)
     if not args.smoke:
-        if len(rows) != FULL_TRAIN_UNITS:
-            raise ValueError(f"the full recipe requires {FULL_TRAIN_UNITS} direction examples")
-        counts = {language: sum(row["target_lang"] == language for row in rows) for language in LANGUAGES}
-        if set(counts.values()) != {2600}:
-            raise ValueError(f"the five-language manifest is not balanced: {counts}")
+        validate_released_manifest(
+            rows,
+            Path(__file__).resolve().parents[1]
+            / "references"
+            / "fleurs_train_targets.jsonl.gz",
+        )
 
     model = TrainingModel(
         args.sft_checkpoint,
