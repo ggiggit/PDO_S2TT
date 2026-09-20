@@ -124,6 +124,16 @@ Revision-aware delivery:
 
 Times are in seconds unless noted otherwise. FRD and RTF include measured computation and therefore depend on hardware; the table reports measurements on one RTX 4090. All five directions have 100% output coverage.
 
+<details>
+<summary><strong>Metric conventions</strong></summary>
+
+- **FTL** is the source-audio position at which the first non-empty visible translation appears; **FRD** is the corresponding computation-aware wall-clock time.
+- **LAAL-CU** timestamps each final target unit at the earliest source-consumption time after which its final prefix remains unchanged, then applies length-adaptive average lagging. The table reports its mean and pooled trajectory P90.
+- Revision metrics use characters for Chinese/Japanese and words otherwise. Normalized erasure divides erased units by final-output length; age-weighted erasure additionally weights each erased unit by how long it remained visible. First stable unit and mean finalization are computed from the same final-prefix timestamps.
+- **RTF** is total inference compute time divided by source-audio duration. Output coverage is the fraction of examples with a non-empty final translation.
+
+</details>
+
 ## Run the steps separately
 
 ```bash
