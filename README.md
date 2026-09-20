@@ -69,7 +69,7 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 
 hf download hf-wzx1205/PDO_S2TT pdo_s2tt.pt \
-  --revision 689ad7c221b0c8509a866d3f68d85b2a25617e84 \
+  --revision 62c27b03aa1d7da1b739e43e815796029ee243f5 \
   --local-dir checkpoints
 bash run_fleurs.sh
 ```
@@ -173,7 +173,7 @@ python scripts/prepare_fleurs_train.py
 
 # Download the released SFT initialization.
 hf download hf-wzx1205/PDO_S2TT pdo_s2tt_sft.pt \
-  --revision 689ad7c221b0c8509a866d3f68d85b2a25617e84 \
+  --revision 62c27b03aa1d7da1b739e43e815796029ee243f5 \
   --local-dir checkpoints
 
 # Run 407 G=4 rollout rounds and 1,625 synchronized AdamW updates.
