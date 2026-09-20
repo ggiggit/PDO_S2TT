@@ -230,6 +230,7 @@ For every displayed draft, the process term scores only the prefix that remains 
 ### Behavior and proximal policies
 
 - Each utterance has four persistent RNG lanes (`K=4`) sampled at temperature `.2`; each sampled draft becomes the private history for the lane's next acoustic update.
+- Rollout sampling does not call `transformers.generate`: after applying the released wait/forbidden-token and no-repeat masks, it samples with `softmax(logits / .2)` and `torch.multinomial`. A Transformers generation-config warning during base-model loading therefore does not alter the PDO behavior policy.
 - The round-start policy supplies both the behavior distribution and frozen proximal snapshot. Token masks and behavior log-probabilities are stored with every sampled action.
 - Eq. (4) uses PPO clipping `ε=.2` and truncated importance correction `c_max=2`. Every token in one draft shares its event weight, while probability ratios remain token-specific. Loss is normalized by trajectories, not generated tokens.
 - Full runs default to seed `52`. Lane seeds are deterministic functions of the run seed, rollout round, distributed rank, utterance position, and lane index; the exact construction is in [`train_pdo.py`](scripts/train_pdo.py).
