@@ -48,8 +48,8 @@ PDO translates a growing English speech stream directly into a revisable target-
 > [!IMPORTANT]
 > **Both released checkpoints are hosted at [🤗 `hf-wzx1205/PDO_S2TT`](https://huggingface.co/hf-wzx1205/PDO_S2TT).**
 >
-> - [`pdo_s2tt.pt`](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/main/pdo_s2tt.pt): paper inference checkpoint.
-> - [`pdo_s2tt_sft.pt`](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/main/pdo_s2tt_sft.pt): SFT initialization for reproducing PDO training.
+> - [`pdo_s2tt.pt`](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/62c27b03aa1d7da1b739e43e815796029ee243f5/pdo_s2tt.pt): paper inference checkpoint.
+> - [`pdo_s2tt_sft.pt`](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/62c27b03aa1d7da1b739e43e815796029ee243f5/pdo_s2tt_sft.pt): SFT initialization for reproducing PDO training.
 >
 > The Qwen3-ASR-1.7B base model is fetched automatically on first use. For an offline run, download or copy it to `checkpoints/Qwen3-ASR-1.7B`; both inference and training detect that directory automatically.
 
