@@ -12,6 +12,8 @@ Official inference, evaluation, and PDO training repository for the **ICASSP 202
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Directions](https://img.shields.io/badge/Directions-5-2E8B57.svg)](#released-fleurs-test-results)
 
+[**Checkpoints**](#model-checkpoint) · [**Quick start**](#quick-start-reproduce-enzh) · [**Results**](#released-fleurs-test-results) · [**Train PDO**](#reproduce-pdo-training) · [**Paper-to-code map**](#paper-to-code-map)
+
 </div>
 
 PDO translates a growing English speech stream directly into a revisable target-language display. This release reproduces the paper's FLEURS TEST results for **En→Zh, En→De, En→Es, En→Ja, and En→Fr**, and includes the reinforcement-learning stage from the released SFT initialization.
@@ -27,14 +29,14 @@ PDO translates a growing English speech stream directly into a revisable target-
 
 | Paper component | Executable implementation |
 |:--|:--|
-| Eq. (1): persistent prefix | [`persistent_prefixes`](src/pdo_s2tt/training/reward.py) |
-| Eq. (2): persistent-delivery utility | [`trajectory_ledger`](src/pdo_s2tt/training/reward.py) |
-| Eq. (3): full-trajectory return | [`full_trajectory_returns`](src/pdo_s2tt/training/reward.py) |
-| Eq. (4): clipped PDO loss | [`pdo_loss`](src/pdo_s2tt/training/policy.py) |
-| G=4 behavior-policy rollout | [`sample_group`](src/pdo_s2tt/training/policy.py), [`rollout`](src/pdo_s2tt/training/trainer.py) |
-| Synchronized policy update | [`update`](src/pdo_s2tt/training/trainer.py) |
-| LAAL-CU | [`stable_emission_times`](src/pdo_s2tt/simultaneous_metrics.py), [`sentence_latency_metrics`](src/pdo_s2tt/simultaneous_metrics.py) |
-| Erasure and finalization | [`revision_record`](src/pdo_s2tt/evaluation.py) |
+| Eq. (1): persistent prefix | [`persistent_prefixes`](src/pdo_s2tt/training/reward.py#L63) |
+| Eq. (2): persistent-delivery utility | [`trajectory_ledger`](src/pdo_s2tt/training/reward.py#L88) |
+| Eq. (3): full-trajectory return | [`full_trajectory_returns`](src/pdo_s2tt/training/reward.py#L130) |
+| Eq. (4): clipped PDO loss | [`pdo_loss`](src/pdo_s2tt/training/policy.py#L229) |
+| G=4 behavior-policy rollout | [`sample_group`](src/pdo_s2tt/training/policy.py#L137), [`rollout`](src/pdo_s2tt/training/trainer.py#L37) |
+| Synchronized policy update | [`update`](src/pdo_s2tt/training/trainer.py#L248) |
+| LAAL-CU | [`stable_emission_times`](src/pdo_s2tt/simultaneous_metrics.py#L24), [`sentence_latency_metrics`](src/pdo_s2tt/simultaneous_metrics.py#L195) |
+| Erasure and finalization | [`revision_record`](src/pdo_s2tt/evaluation.py#L140) |
 | Table 3 controlled RL variants | [Exact definitions](#controlled-rl-baselines-in-table-3) |
 
 ## Model checkpoint
