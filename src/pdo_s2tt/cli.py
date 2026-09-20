@@ -18,7 +18,10 @@ def main() -> None:
     parser.add_argument("audio", help="16 kHz WAV audio")
     parser.add_argument("--target", required=True, choices=["zh", "de", "es", "ja", "fr"])
     parser.add_argument("--checkpoint", default=str(default_checkpoint()))
-    parser.add_argument("--base-model", default="Qwen/Qwen3-ASR-1.7B")
+    parser.add_argument(
+        "--base-model",
+        help="base model ID or local directory (auto-detects checkpoints/Qwen3-ASR-1.7B)",
+    )
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--jsonl", action="store_true", help="emit complete event objects")
     args = parser.parse_args()

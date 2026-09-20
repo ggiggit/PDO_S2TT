@@ -32,7 +32,10 @@ def main() -> None:
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--checkpoint", type=Path)
-    parser.add_argument("--base-model", default="Qwen/Qwen3-ASR-1.7B")
+    parser.add_argument(
+        "--base-model",
+        help="base model ID or local directory (auto-detects checkpoints/Qwen3-ASR-1.7B)",
+    )
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--limit", type=int, help="run only the first N examples")
     args = parser.parse_args()

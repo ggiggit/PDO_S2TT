@@ -78,15 +78,19 @@ class PDOS2TT:
     """One loaded English-to-X PDO streaming translator."""
 
     def __init__(self, checkpoint: str | Path, target_language: str,
-                 base_model: str = "Qwen/Qwen3-ASR-1.7B",
+                 base_model: str | None = None,
                  device: str = "cuda:0") -> None:
         from qwen_asr import Qwen3ASRModel
         from streaming_s2tt.qwen_asr_streaming_runtime import PersistentQwenASRTranslator
 
         self.payload = load_checkpoint(checkpoint)
         target, _, _ = instructions(target_language)
+        local_base = Path("checkpoints/Qwen3-ASR-1.7B")
+        model_id = base_model or (
+            str(local_base) if local_base.is_dir() else self.payload["model_id"]
+        )
         runtime = Qwen3ASRModel.from_pretrained(
-            base_model, dtype=torch.bfloat16, device_map=device, max_new_tokens=64,
+            model_id, dtype=torch.bfloat16, device_map=device, max_new_tokens=64,
         )
         with _install_before_initial_cache(self.payload, target_language) as created:
             self.translator = PersistentQwenASRTranslator(

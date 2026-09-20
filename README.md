@@ -4,7 +4,7 @@
 
 ### Persistent Delivery Optimization for Streaming Speech-to-Text Translation with Revisions
 
-Official inference and evaluation repository for the **ICASSP 2027 submission**.
+Official inference, evaluation, and PDO training repository for the **ICASSP 2027 submission**.
 
 [![Model](https://img.shields.io/badge/Model-Hugging%20Face-FFD21E.svg?logo=huggingface&logoColor=black)](https://huggingface.co/hf-wzx1205/PDO_S2TT)
 [![License](https://img.shields.io/badge/License-Apache%202.0-4C8BF5.svg)](LICENSE)
@@ -13,19 +13,24 @@ Official inference and evaluation repository for the **ICASSP 2027 submission**.
 
 </div>
 
-PDO translates a growing English speech stream directly into a revisable target-language display. This release reproduces the paper's FLEURS TEST results for **En→Zh, En→De, En→Es, En→Ja, and En→Fr**. Training code is intentionally not included.
+PDO translates a growing English speech stream directly into a revisable target-language display. This release reproduces the paper's FLEURS TEST results for **En→Zh, En→De, En→Es, En→Ja, and En→Fr**, and includes the reinforcement-learning stage from the released SFT initialization.
 
 ## Highlights
 
 - **Direct streaming S2TT:** speech prefixes are translated without exposing an intermediate transcript.
 - **Revision-aware delivery:** the model may wait, append, or revise the complete visible translation as speech arrives.
 - **One-command reproduction:** download FLEURS TEST, run all streaming stages, report every paper metric, and verify released results.
+- **Reproducible RL stage:** download the released SFT initialization and run the paper's G=4 multilingual PDO recipe on four GPUs.
 
 ## Model checkpoint
 
 > [!IMPORTANT]
-> **The released checkpoint is hosted at [🤗 `hf-wzx1205/PDO_S2TT`](https://huggingface.co/hf-wzx1205/PDO_S2TT).**
-> Download it as `checkpoints/pdo_s2tt.pt`; the Qwen3-ASR-1.7B base model is fetched automatically on first use.
+> **Both released checkpoints are hosted at [🤗 `hf-wzx1205/PDO_S2TT`](https://huggingface.co/hf-wzx1205/PDO_S2TT).**
+>
+> - [`pdo_s2tt.pt`](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/main/pdo_s2tt.pt): paper inference checkpoint.
+> - [`pdo_s2tt_sft.pt`](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/main/pdo_s2tt_sft.pt): SFT initialization for reproducing PDO training.
+>
+> The Qwen3-ASR-1.7B base model is fetched automatically on first use. For an offline run, download or copy it to `checkpoints/Qwen3-ASR-1.7B`; both inference and training detect that directory automatically.
 
 ## Quick start: reproduce En→Zh
 
@@ -123,6 +128,73 @@ Use `--skip-comet` for a faster deterministic-only evaluation; the output then m
 
 Chinese BLEU uses SacreBLEU's `zh` tokenizer, Japanese uses `ja-mecab`, and the remaining languages use `13a`.
 
+## Reproduce PDO training
+
+The public training release starts from the SFT policy used by PDO; it does not include the preceding supervised-training stages. The full recipe uses four GPUs with at least 24 GB each and processes all 13,000 FLEURS TRAIN direction examples once.
+
+```bash
+# Download the five-direction FLEURS TRAIN manifest and English audio.
+python scripts/prepare_fleurs_train.py
+
+# Download the released SFT initialization.
+hf download hf-wzx1205/PDO_S2TT pdo_s2tt_sft.pt --local-dir checkpoints
+
+# Run 407 G=4 rollout rounds and 1,625 synchronized AdamW updates.
+bash train_pdo.sh
+```
+
+The final inference checkpoint is written to `results/training/pdo_s2tt.pt`. It can be passed directly to `scripts/infer_fleurs.py`:
+
+```bash
+python scripts/infer_fleurs.py \
+  --target zh \
+  --manifest data/fleurs/en-zh/test.jsonl \
+  --checkpoint results/training/pdo_s2tt.pt \
+  --output results/trained/en-zh/predictions.jsonl
+```
+
+On an offline machine, place the base model at `checkpoints/Qwen3-ASR-1.7B` or pass `--base-model /path/to/Qwen3-ASR-1.7B` to `scripts/train_pdo.py`.
+
+Before committing a full run, use the same real streaming and backward path on one utterance per GPU:
+
+```bash
+torchrun --standalone --nproc-per-node=4 scripts/train_pdo.py \
+  --manifest data/fleurs/train/train.jsonl \
+  --sft-checkpoint checkpoints/pdo_s2tt_sft.pt \
+  --output results/smoke \
+  --smoke
+```
+
+The paper recipe is fixed as follows:
+
+| Setting | Value |
+|:--|:--|
+| Directions | En→Zh/De/Es/Ja/Fr |
+| Training units | 2,600 recordings × 5 directions |
+| Acoustic update / input packet | 2.0 s / 0.1 s |
+| Samples per utterance | 4 |
+| Sampling temperature | 0.2 |
+| Rollout batch / optimizer minibatch | 32 / 8 utterances |
+| Trainable parameters | text-decoder LoRA + private history adapter |
+| Optimizer | AdamW, LR `1e-6`, weight decay `.01` |
+| Gradient clipping | 1.0 |
+| Schedule | 407 rollout rounds / 1,625 updates / one TRAIN pass |
+
+On four RTX 4090 GPUs, a complete run takes approximately 10 hours. The trainer writes resumable state and an inference checkpoint after every rollout round.
+
+For every displayed draft, the process term scores only the prefix that remains unchanged in all later drafts. The terminal term is language-aware sentence BLEU. The complete future return `G_t = Φ_T − Φ_(t−1)` is standardized across the four trajectories at each event; no value model or direct latency reward is used. [`reward.py`](src/pdo_s2tt/training/reward.py) contains the complete reward definition.
+
+As a reproduction check, the released SFT and PDO checkpoints give the following five-direction FLEURS TEST macro results. Independent full training runs are stochastic; small deviations are expected.
+
+| Checkpoint | BLEU ↑ | COMET ↑ | chrF++ ↑ | FTL ↓ | FRD ↓ | LAAL-CU mean / P90 ↓ |
+|:--|--:|--:|--:|--:|--:|--:|
+| Released SFT initialization | 30.77 | 85.61 | 44.07 | 2.00 | 2.45 | 3.42 / 6.38 |
+| Released PDO | 31.58 | 85.37 | 44.67 | 2.00 | 2.42 | 3.05 / 5.66 |
+
+### DEV checkpoint selection used in the paper
+
+Checkpoint selection did not use the PDO reward or a weighted quality-latency score. We first retained checkpoints with no empty outputs, COMET within 0.30 of the best candidate from the same run, BLEU within 1.0 of that run's best candidate, and COMET no more than 0.50 below the selected History-SFT checkpoint. Among the remaining checkpoints, we selected lexicographically by lower LAAL-CU mean, lower LAAL-CU P90, lower FRD, and finally higher COMET. A candidate was promoted only if it passed the quality filters and improved either LAAL-CU mean by at least 0.20 s or LAAL-CU P90 by at least 0.50 s relative to History-SFT.
+
 ## Translate one WAV file
 
 Input audio must be mono 16 kHz WAV. Other WAV encodings are converted to 16-bit PCM before streaming.
@@ -135,7 +207,7 @@ The command prints each complete visible translation as it is revised. Add `--js
 
 ## FLEURS data
 
-The preparation script downloads `data/en_us/test.tsv` and `data/en_us/audio/test.tar.gz` from the official [`google/fleurs`](https://huggingface.co/datasets/google/fleurs) repository. References are aligned by the official FLEURS/FLORES sentence IDs; target-language audio is not required.
+The preparation scripts download English TSV/audio archives from the official [`google/fleurs`](https://huggingface.co/datasets/google/fleurs) repository. Test references are aligned by the official FLEURS/FLORES sentence IDs. For training, `references/fleurs_train_targets.jsonl.gz` freezes the exact 13,000 direction targets and order used by the paper: human FLEURS translations where available and the original frozen teacher translations for missing language directions. Target-language audio is not required.
 
 FLEURS is distributed under CC BY 4.0. Its FLORES-derived text remains subject to the corresponding FLORES attribution and share-alike terms.
 
