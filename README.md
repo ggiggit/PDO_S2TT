@@ -68,7 +68,9 @@ source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e .
 
-hf download hf-wzx1205/PDO_S2TT pdo_s2tt.pt --local-dir checkpoints
+hf download hf-wzx1205/PDO_S2TT pdo_s2tt.pt \
+  --revision 689ad7c221b0c8509a866d3f68d85b2a25617e84 \
+  --local-dir checkpoints
 bash run_fleurs.sh
 ```
 
@@ -170,7 +172,9 @@ The public training release starts from the SFT policy used by PDO; it does not 
 python scripts/prepare_fleurs_train.py
 
 # Download the released SFT initialization.
-hf download hf-wzx1205/PDO_S2TT pdo_s2tt_sft.pt --local-dir checkpoints
+hf download hf-wzx1205/PDO_S2TT pdo_s2tt_sft.pt \
+  --revision 689ad7c221b0c8509a866d3f68d85b2a25617e84 \
+  --local-dir checkpoints
 
 # Run 407 G=4 rollout rounds and 1,625 synchronized AdamW updates.
 bash train_pdo.sh

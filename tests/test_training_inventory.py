@@ -4,7 +4,12 @@ from collections import Counter
 from pathlib import Path
 
 from pdo_s2tt import __version__
-from pdo_s2tt.revisions import COMET_REVISION, FLEURS_REVISION, QWEN3_ASR_REVISION
+from pdo_s2tt.revisions import (
+    COMET_REVISION,
+    FLEURS_REVISION,
+    PDO_RELEASE_REVISION,
+    QWEN3_ASR_REVISION,
+)
 from pdo_s2tt.training.data import released_targets, validate_released_manifest
 
 
@@ -16,7 +21,12 @@ def test_public_package_version():
 
 
 def test_upstream_revisions_are_immutable_commit_ids():
-    for revision in (FLEURS_REVISION, QWEN3_ASR_REVISION, COMET_REVISION):
+    for revision in (
+        FLEURS_REVISION,
+        QWEN3_ASR_REVISION,
+        COMET_REVISION,
+        PDO_RELEASE_REVISION,
+    ):
         assert len(revision) == 40
         int(revision, 16)
 
