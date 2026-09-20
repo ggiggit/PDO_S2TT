@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pdo-s2tt"
+version = "0.1.0"
+description = "Inference and evaluation for Persistent Delivery Optimization"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "accelerate==1.12.0",
+  "huggingface-hub>=0.36,<1.0",
+  "numpy>=1.26,<2.0",
+  "peft==0.19.1",
+  "qwen-asr==0.0.6",
+  "sacrebleu[ja]>=2.5,<2.6",
+  "soundfile==0.14.0",
+  "torch>=2.8,<2.9",
+  "transformers==4.57.6",
+  "unbabel-comet>=2.2,<2.3",
+]
+
+[project.scripts]
+pdo-s2tt = "pdo_s2tt.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
