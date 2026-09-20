@@ -1,4 +1,15 @@
-from pdo_s2tt.training.reward import persistent_delivery_returns, trajectory_ledger
+from pdo_s2tt.training.reward import (
+    full_trajectory_returns,
+    persistent_delivery_returns,
+    persistent_prefixes,
+    trajectory_ledger,
+)
+
+
+def test_paper_equation_helpers():
+    drafts = [("a", "b"), ("a", "c"), ("a", "c", "d")]
+    assert persistent_prefixes(drafts) == [("a",), ("a", "c"), ("a", "c", "d")]
+    assert full_trajectory_returns([1.0, 1.5, 2.0]) == [2.0, 1.0, 0.5]
 
 
 def test_append_only_rewards_earlier_delivery():

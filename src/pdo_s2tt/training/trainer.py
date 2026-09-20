@@ -14,7 +14,7 @@ import torch.distributed as dist
 from pdo_s2tt.audio import packets, read_wav
 from pdo_s2tt.history import visible_ids
 from .model import TrainingModel
-from .policy import ConditionedModel, action_logps, decoupled_loss, policy_from_decoder, sample_group
+from .policy import ConditionedModel, action_logps, pdo_loss, policy_from_decoder, sample_group
 from .reward import persistent_delivery_returns
 
 
@@ -266,7 +266,7 @@ def update(
                     device=values.device,
                     dtype=values.dtype,
                 )
-                loss = decoupled_loss(
+                loss = pdo_loss(
                     values, proximal, behavior, event["advantages"][lane],
                 ) * scale
                 event_loss = event_loss + loss

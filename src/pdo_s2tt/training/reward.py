@@ -60,6 +60,18 @@ def longest_common_prefix(left: tuple[str, ...], right: tuple[str, ...]) -> tupl
     return left[:end]
 
 
+def persistent_prefixes(drafts: list[tuple[str, ...]]) -> list[tuple[str, ...]]:
+    """Eq. (1): prefix of every draft that survives all later revisions."""
+    result: list[tuple[str, ...]] = [()] * len(drafts)
+    survivor: tuple[str, ...] | None = None
+    for index in range(len(drafts) - 1, -1, -1):
+        survivor = drafts[index] if survivor is None else longest_common_prefix(
+            drafts[index], survivor,
+        )
+        result[index] = survivor
+    return result
+
+
 def _lcs_length(left: tuple[str, ...], right: tuple[str, ...]) -> int:
     previous = [0] * (len(right) + 1)
     for token in left:
@@ -87,12 +99,11 @@ def trajectory_ledger(
         raise ValueError("event times must be strictly increasing")
 
     interval = [second - first for first, second in zip(times, times[1:])]
-    survivors: list[tuple[str, ...]] = []
     potentials: list[float] = []
     rewards: list[float] = []
     previous = 0.0
     for event, current in enumerate(tokenized):
-        survivors = [longest_common_prefix(old, current) for old in survivors] + [current]
+        survivors = persistent_prefixes(tokenized[: event + 1])
         area = sum(
             interval[index] * _lcs_length(survivors[index], target) / len(target)
             for index in range(event)
@@ -105,10 +116,7 @@ def trajectory_ledger(
         potentials.append(potential)
         previous = potential
 
-    returns = [
-        potentials[-1] - (potentials[event - 1] if event else 0.0)
-        for event in range(len(potentials))
-    ]
+    returns = full_trajectory_returns(potentials)
     if not math.isclose(sum(rewards), potentials[-1], abs_tol=1e-10):
         raise RuntimeError("PDO rewards failed the telescoping identity")
     return {
@@ -117,6 +125,16 @@ def trajectory_ledger(
         "returns": returns,
         "objective": potentials[-1],
     }
+
+
+def full_trajectory_returns(potentials: list[float]) -> list[float]:
+    """Eq. (3): assign each event the complete future return."""
+    if not potentials:
+        raise ValueError("at least one trajectory potential is required")
+    return [
+        potentials[-1] - (potentials[event - 1] if event else 0.0)
+        for event in range(len(potentials))
+    ]
 
 
 def _standardize(values: list[float]) -> list[float]:

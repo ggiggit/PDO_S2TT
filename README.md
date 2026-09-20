@@ -22,6 +22,20 @@ PDO translates a growing English speech stream directly into a revisable target-
 - **One-command reproduction:** download FLEURS TEST, run all streaming stages, report every paper metric, and verify released results.
 - **Reproducible RL stage:** download the released SFT initialization and run the paper's G=4 multilingual PDO recipe on four GPUs.
 
+## Paper-to-code map
+
+| Paper component | Executable implementation |
+|:--|:--|
+| Eq. (1): persistent prefix | [`persistent_prefixes`](src/pdo_s2tt/training/reward.py) |
+| Eq. (2): persistent-delivery utility | [`trajectory_ledger`](src/pdo_s2tt/training/reward.py) |
+| Eq. (3): full-trajectory return | [`full_trajectory_returns`](src/pdo_s2tt/training/reward.py) |
+| Eq. (4): clipped PDO loss | [`pdo_loss`](src/pdo_s2tt/training/policy.py) |
+| G=4 behavior-policy rollout | [`sample_group`](src/pdo_s2tt/training/policy.py), [`rollout`](src/pdo_s2tt/training/trainer.py) |
+| Synchronized policy update | [`update`](src/pdo_s2tt/training/trainer.py) |
+| LAAL-CU | [`stable_emission_times`](src/pdo_s2tt/simultaneous_metrics.py), [`sentence_latency_metrics`](src/pdo_s2tt/simultaneous_metrics.py) |
+| Erasure and finalization | [`revision_record`](src/pdo_s2tt/evaluation.py) |
+| Table 3 controlled RL variants | [Exact definitions](#controlled-rl-baselines-in-table-3) |
+
 ## Model checkpoint
 
 > [!IMPORTANT]
@@ -184,6 +198,38 @@ On four RTX 4090 GPUs, a complete run takes approximately 10 hours. The trainer 
 
 For every displayed draft, the process term scores only the prefix that remains unchanged in all later drafts. The terminal term is language-aware sentence BLEU. The complete future return `G_t = Φ_T − Φ_(t−1)` is standardized across the four trajectories at each event; no value model or direct latency reward is used. [`reward.py`](src/pdo_s2tt/training/reward.py) contains the complete reward definition.
 
+<details>
+<summary><strong>Exact implementation contract (normalization, reward, sampling, and seeds)</strong></summary>
+
+### Text units and normalization
+
+- Chinese and Japanese use individual CJK characters while preserving contiguous non-CJK alphanumeric strings such as names and numbers.
+- German, Spanish, and French use case-folded Unicode word units. Internal apostrophes and hyphens are preserved; surrounding punctuation and whitespace are discarded.
+- The process term is LCS recall on these units. The terminal term joins the same units with spaces and uses normalized effective-order sentence BLEU with `tokenize="none"`.
+- Reporting is deliberately separate from reward tokenization: corpus BLEU uses SacreBLEU `zh`, `ja-mecab`, or `13a` as documented below.
+
+### Reward and return
+
+- Acoustic updates occur every 2.0 s from 0.1-s PCM packets. The terminal hold is `H=2.0 s`.
+- Eq. (1) is computed over the entire suffix of drafts. Eq. (2) integrates LCS recall over source-time intervals and adds final sentence BLEU.
+- Eq. (3) is `G_t = Φ_T - Φ_(t-1)`. Returns use the population mean and variance across the four trajectories at the same event.
+- A variance at or below `1e-16` is treated as numerical zero and all four weights become zero; otherwise returns are divided by the population standard deviation.
+
+### Behavior and proximal policies
+
+- Each utterance has four persistent RNG lanes (`K=4`) sampled at temperature `.2`; each sampled draft becomes the private history for the lane's next acoustic update.
+- The round-start policy supplies both the behavior distribution and frozen proximal snapshot. Token masks and behavior log-probabilities are stored with every sampled action.
+- Eq. (4) uses PPO clipping `ε=.2` and truncated importance correction `c_max=2`. Every token in one draft shares its event weight, while probability ratios remain token-specific. Loss is normalized by trajectories, not generated tokens.
+- Full runs default to seed `52`. Lane seeds are deterministic functions of the run seed, rollout round, distributed rank, utterance position, and lane index; the exact construction is in [`train_pdo.py`](scripts/train_pdo.py).
+
+### Optimization
+
+- The Qwen3-ASR backbone remains frozen. PDO updates decoder LoRA and the private-history module only.
+- AdamW uses learning rate `1e-6`, weight decay `.01`, and global gradient clipping at `1.0`.
+- Dropout is disabled during on-policy rollout and update. Every round saves a resumable optimizer state and an inference-only checkpoint.
+
+</details>
+
 As a reproduction check, the released SFT and PDO checkpoints give the following five-direction FLEURS TEST macro results. Independent full training runs are stochastic; small deviations are expected.
 
 | Checkpoint | BLEU ↑ | COMET ↑ | chrF++ ↑ | FTL ↓ | FRD ↓ | LAAL-CU mean / P90 ↓ |
@@ -194,6 +240,10 @@ As a reproduction check, the released SFT and PDO checkpoints give the following
 ### DEV checkpoint selection used in the paper
 
 Checkpoint selection did not use the PDO reward or a weighted quality-latency score. We first retained checkpoints with no empty outputs, COMET within 0.30 of the best candidate from the same run, BLEU within 1.0 of that run's best candidate, and COMET no more than 0.50 below the selected History-SFT checkpoint. Among the remaining checkpoints, we selected lexicographically by lower LAAL-CU mean, lower LAAL-CU P90, lower FRD, and finally higher COMET. A candidate was promoted only if it passed the quality filters and improved either LAAL-CU mean by at least 0.20 s or LAAL-CU P90 by at least 0.50 s relative to History-SFT.
+
+### Controlled RL baselines in Table 3
+
+All four RL methods use the same History-SFT initialization, state/action interface, `K=4` rollouts, temperature, trainable parameters, optimizer, data order, and update framework. **Current-draft RL** replaces only the persistent prefix in the process term with the currently visible draft and retains the full return. **Hibiki-Zero-style RL** uses intermediate-plus-final sentence BLEU with `α=.5`. **HPO-style RL** uses quality-gated final BLEU/LAAL-CU with quality threshold `.33` and latency weight `.5`. These definitions document the paper's controlled comparison; the minimal supported training entry point in this repository executes PDO.
 
 ## Translate one WAV file
 

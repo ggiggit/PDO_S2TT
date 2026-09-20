@@ -226,10 +226,11 @@ def action_logps(logits: torch.Tensor, trace: dict) -> torch.Tensor:
     return selected
 
 
-def decoupled_loss(
+def pdo_loss(
     current: torch.Tensor, proximal: torch.Tensor, behavior: torch.Tensor,
     advantage: float, epsilon: float = 0.2, tis_cap: float = 2.0,
 ) -> torch.Tensor:
+    """Eq. (4): clipped PPO loss with truncated behavior correction."""
     correction = (proximal.detach() - behavior.detach()).exp().clamp(max=tis_cap)
     ratio = (current - proximal.detach()).exp()
     signed = torch.as_tensor(advantage, dtype=current.dtype, device=current.device)
