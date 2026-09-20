@@ -154,7 +154,9 @@ def main() -> None:
         if rank == 0:
             checkpoint = args.output / "pdo_s2tt.pt"
             policy = model.state_dict(rounds=outer + 1, adam_updates=updates)
-            torch.save(policy, checkpoint)
+            checkpoint_temporary = checkpoint.with_suffix(".tmp")
+            torch.save(policy, checkpoint_temporary)
+            checkpoint_temporary.replace(checkpoint)
             training_state = args.output / "training_state.pt"
             temporary = training_state.with_suffix(".tmp")
             torch.save({
