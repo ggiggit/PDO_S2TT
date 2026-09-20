@@ -1,17 +1,31 @@
+<div align="center">
+
 # PDO_S2TT
 
-Official inference and evaluation repository for the ICASSP 2027 submission:
+### Persistent Delivery Optimization for Streaming Speech-to-Text Translation with Revisions
 
-> **PERSISTENT DELIVERY OPTIMIZATION FOR STREAMING SPEECH-TO-TEXT TRANSLATION WITH REVISIONS**
+Official inference and evaluation repository for the **ICASSP 2027 submission**.
 
-PDO translates a growing English speech stream directly into a revisable target-language display. This release supports **En→Zh, En→De, En→Es, En→Ja, and En→Fr** and reproduces the FLEURS TEST results reported in the paper. Training code is intentionally not included.
+[![Model](https://img.shields.io/badge/Model-Hugging%20Face-FFD21E.svg?logo=huggingface&logoColor=black)](https://huggingface.co/hf-wzx1205/PDO_S2TT)
+[![License](https://img.shields.io/badge/License-Apache%202.0-4C8BF5.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![Directions](https://img.shields.io/badge/Directions-5-2E8B57.svg)](#released-fleurs-test-results)
+
+</div>
+
+PDO translates a growing English speech stream directly into a revisable target-language display. This release reproduces the paper's FLEURS TEST results for **En→Zh, En→De, En→Es, En→Ja, and En→Fr**. Training code is intentionally not included.
+
+## Highlights
+
+- **Direct streaming S2TT:** speech prefixes are translated without exposing an intermediate transcript.
+- **Revision-aware delivery:** the model may wait, append, or revise the complete visible translation as speech arrives.
+- **One-command reproduction:** download FLEURS TEST, run all streaming stages, report every paper metric, and verify released results.
 
 ## Model checkpoint
 
-> **Download the released PDO checkpoint from Hugging Face:**  
-> [🤗 `hf-wzx1205/PDO_S2TT`](https://huggingface.co/hf-wzx1205/PDO_S2TT)
-
-The inference scripts expect the downloaded file at `checkpoints/pdo_s2tt.pt`. The Qwen3-ASR-1.7B base model is downloaded automatically on first use.
+> [!IMPORTANT]
+> **The released checkpoint is hosted at [🤗 `hf-wzx1205/PDO_S2TT`](https://huggingface.co/hf-wzx1205/PDO_S2TT).**
+> Download it as `checkpoints/pdo_s2tt.pt`; the Qwen3-ASR-1.7B base model is fetched automatically on first use.
 
 ## Quick start: reproduce En→Zh
 
@@ -124,3 +138,9 @@ The command prints each complete visible translation as it is revised. Add `--js
 The preparation script downloads `data/en_us/test.tsv` and `data/en_us/audio/test.tar.gz` from the official [`google/fleurs`](https://huggingface.co/datasets/google/fleurs) repository. References are aligned by the official FLEURS/FLORES sentence IDs; target-language audio is not required.
 
 FLEURS is distributed under CC BY 4.0. Its FLORES-derived text remains subject to the corresponding FLORES attribution and share-alike terms.
+
+## License
+
+The PDO_S2TT inference code and released checkpoint are licensed under the [Apache License 2.0](LICENSE). The `Qwen/Qwen3-ASR-1.7B` base model is distributed separately under its own Apache-2.0 license. FLEURS-derived references are not relicensed by this repository and remain subject to CC BY 4.0 and the applicable FLORES terms.
+
+Copyright 2026 PDO_S2TT Authors.
