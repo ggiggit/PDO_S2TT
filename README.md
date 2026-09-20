@@ -160,6 +160,8 @@ hf download hf-wzx1205/PDO_S2TT pdo_s2tt_sft.pt --local-dir checkpoints
 bash train_pdo.sh
 ```
 
+If the official FLEURS files are already available, both preparation scripts accept `--tsv` and `--archive`; this bypasses network access while retaining all record-count, identity, WAV-format, and reference checks.
+
 The final inference checkpoint is written to `results/training/pdo_s2tt.pt`. It can be passed directly to `scripts/infer_fleurs.py`:
 
 ```bash

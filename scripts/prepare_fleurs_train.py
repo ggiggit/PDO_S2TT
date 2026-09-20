@@ -73,6 +73,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=Path("data/fleurs/train"))
     parser.add_argument("--cache", type=Path, default=Path("data/.cache"))
+    parser.add_argument("--tsv", type=Path, help="reuse an existing official en_us/train.tsv")
+    parser.add_argument(
+        "--archive",
+        type=Path,
+        help="reuse an existing official en_us train.tar.gz",
+    )
     parser.add_argument(
         "--targets", type=Path,
         default=Path(__file__).resolve().parents[1] / "references" / "fleurs_train_targets.jsonl.gz",
@@ -81,8 +87,8 @@ def main() -> None:
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
 
-    source_tsv = download("data/en_us/train.tsv", args.cache)
-    archive = download("data/en_us/audio/train.tar.gz", args.cache)
+    source_tsv = args.tsv or download("data/en_us/train.tsv", args.cache)
+    archive = args.archive or download("data/en_us/audio/train.tar.gz", args.cache)
     source = read_tsv(source_tsv)
     if len(source) != EXPECTED_SOURCE_RECORDINGS:
         raise ValueError(f"expected {EXPECTED_SOURCE_RECORDINGS} English TRAIN recordings")
