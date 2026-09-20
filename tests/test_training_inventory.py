@@ -3,8 +3,14 @@ import json
 from collections import Counter
 from pathlib import Path
 
+from pdo_s2tt import __version__
+
 
 TARGETS = Path(__file__).resolve().parents[1] / "references" / "fleurs_train_targets.jsonl.gz"
+
+
+def test_public_package_version():
+    assert __version__ == "0.2.0"
 
 
 def test_released_training_inventory_is_complete_and_balanced():
