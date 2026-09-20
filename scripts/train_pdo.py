@@ -16,7 +16,7 @@ import torch
 import torch.distributed as dist
 
 from pdo_s2tt.training.model import TrainingModel
-from pdo_s2tt.training.data import validate_released_manifest
+from pdo_s2tt.training.data import LANGUAGES, validate_released_manifest
 from pdo_s2tt.training.trainer import capture_proximal, rollout, update
 
 
