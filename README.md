@@ -197,7 +197,7 @@ The paper recipe is fixed as follows:
 | Gradient clipping | 1.0 |
 | Schedule | 407 rollout rounds / 1,625 updates / one TRAIN pass |
 
-On four RTX 4090 GPUs, a complete run takes approximately 10 hours. The trainer writes resumable state and an inference checkpoint after every rollout round.
+On four RTX 4090 GPUs, a complete run takes approximately 10 hours. The trainer writes resumable state and an inference checkpoint after every rollout round. Rerunning `bash train_pdo.sh` automatically resumes from `results/training/training_state.pt` when that file exists.
 
 For every displayed draft, the process term scores only the prefix that remains unchanged in all later drafts. The terminal term is language-aware sentence BLEU. The complete future return `G_t = Φ_T − Φ_(t−1)` is standardized across the four trajectories at each event; no value model or direct latency reward is used. [`reward.py`](src/pdo_s2tt/training/reward.py) contains the complete reward definition.
 
