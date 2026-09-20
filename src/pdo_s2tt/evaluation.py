@@ -212,10 +212,15 @@ def quality_metrics(rows: list[dict], language: str, skip_comet: bool = False,
     }
     if not skip_comet:
         import torch
-        from comet import download_model, load_from_checkpoint
+        from comet import load_from_checkpoint
+        from huggingface_hub import snapshot_download
 
-        checkpoint = download_model("Unbabel/wmt22-comet-da")
-        model = load_from_checkpoint(checkpoint)
+        from pdo_s2tt.revisions import COMET_REVISION
+
+        snapshot = Path(snapshot_download(
+            "Unbabel/wmt22-comet-da", revision=COMET_REVISION,
+        ))
+        model = load_from_checkpoint(str(snapshot / "checkpoints" / "model.ckpt"))
         prediction = model.predict(
             [{"src": src, "mt": mt, "ref": ref}
              for src, mt, ref in zip(sources, hypotheses, references)],

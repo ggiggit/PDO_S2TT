@@ -9,6 +9,7 @@ import torch
 
 from pdo_s2tt.history import PrivateHistoryAdapter
 from pdo_s2tt.languages import instructions
+from pdo_s2tt.revisions import QWEN3_ASR_REVISION
 from .policy import install_masked_history
 
 
@@ -121,9 +122,14 @@ class TrainingModel:
         model_id = base_model or (
             str(local_base) if local_base.is_dir() else self.payload["model_id"]
         )
-        runtime = Qwen3ASRModel.from_pretrained(
-            model_id, dtype=torch.bfloat16, device_map=device, max_new_tokens=64,
-        )
+        load_options = {
+            "dtype": torch.bfloat16,
+            "device_map": device,
+            "max_new_tokens": 64,
+        }
+        if not Path(model_id).is_dir():
+            load_options["revision"] = QWEN3_ASR_REVISION
+        runtime = Qwen3ASRModel.from_pretrained(model_id, **load_options)
         with _attach_before_first_cache(self.payload) as created:
             self.translator = PersistentQwenASRTranslator(
                 runtime, self.payload,

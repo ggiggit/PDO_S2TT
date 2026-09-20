@@ -12,6 +12,8 @@ import tarfile
 import soundfile as sf
 from huggingface_hub import hf_hub_download
 
+from pdo_s2tt.revisions import FLEURS_REVISION
+
 
 LANGUAGES = {"zh", "de", "es", "ja", "fr"}
 EXPECTED_SOURCE_RECORDINGS = 2602
@@ -66,6 +68,7 @@ def duration(path: Path, declared_samples: int) -> float:
 def download(repo_file: str, cache: Path) -> Path:
     return Path(hf_hub_download(
         "google/fleurs", repo_file, repo_type="dataset", cache_dir=cache,
+        revision=FLEURS_REVISION,
     ))
 
 

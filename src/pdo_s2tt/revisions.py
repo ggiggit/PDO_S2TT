@@ -1,0 +1,5 @@
+"""Immutable upstream revisions used for the paper reproduction."""
+
+FLEURS_REVISION = "70bb2e84b976b7e960aa89f1c648e09c59f894dd"
+QWEN3_ASR_REVISION = "7278e1e70fe206f11671096ffdd38061171dd6e5"
+COMET_REVISION = "2760a223ac957f30acfb18c8aa649b01cf1d75f2"

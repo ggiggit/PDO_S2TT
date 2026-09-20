@@ -53,6 +53,8 @@ PDO translates a growing English speech stream directly into a revisable target-
 >
 > The Qwen3-ASR-1.7B base model is fetched automatically on first use. For an offline run, download or copy it to `checkpoints/Qwen3-ASR-1.7B`; both inference and training detect that directory automatically.
 
+The online preparation and model-loading paths pin the exact FLEURS, Qwen3-ASR, and WMT22-COMET-DA revisions used by this release in [`revisions.py`](src/pdo_s2tt/revisions.py). Local model/data paths remain available for offline reproduction.
+
 ## Quick start: reproduce En→Zh
 
 Requirements: Linux, Python 3.12, CUDA, and a GPU with at least 16 GB memory.

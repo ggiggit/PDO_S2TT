@@ -12,6 +12,8 @@ import soundfile as sf
 
 from huggingface_hub import hf_hub_download
 
+from pdo_s2tt.revisions import FLEURS_REVISION
+
 
 LANGUAGES = {"zh", "de", "es", "ja", "fr"}
 EXPECTED_RECORDS = 647
@@ -87,13 +89,13 @@ def main() -> None:
     tsv = args.tsv or Path(
         hf_hub_download(
             "google/fleurs", "data/en_us/test.tsv", repo_type="dataset",
-            cache_dir=args.cache,
+            cache_dir=args.cache, revision=FLEURS_REVISION,
         )
     )
     archive = args.archive or Path(
         hf_hub_download(
             "google/fleurs", "data/en_us/audio/test.tar.gz", repo_type="dataset",
-            cache_dir=args.cache,
+            cache_dir=args.cache, revision=FLEURS_REVISION,
         )
     )
     source_rows = read_tsv(tsv)

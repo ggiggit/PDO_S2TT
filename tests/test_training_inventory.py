@@ -4,6 +4,7 @@ from collections import Counter
 from pathlib import Path
 
 from pdo_s2tt import __version__
+from pdo_s2tt.revisions import COMET_REVISION, FLEURS_REVISION, QWEN3_ASR_REVISION
 from pdo_s2tt.training.data import released_targets, validate_released_manifest
 
 
@@ -12,6 +13,12 @@ TARGETS = Path(__file__).resolve().parents[1] / "references" / "fleurs_train_tar
 
 def test_public_package_version():
     assert __version__ == "0.2.0"
+
+
+def test_upstream_revisions_are_immutable_commit_ids():
+    for revision in (FLEURS_REVISION, QWEN3_ASR_REVISION, COMET_REVISION):
+        assert len(revision) == 40
+        int(revision, 16)
 
 
 def test_released_training_inventory_is_complete_and_balanced():

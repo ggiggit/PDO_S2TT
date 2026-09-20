@@ -8,6 +8,7 @@ import torch
 
 from .history import PrivateHistoryAdapter, install_private_runtime
 from .languages import instructions
+from .revisions import QWEN3_ASR_REVISION
 
 
 CHECKPOINT_FORMAT = "pdo-s2tt-inference-v1"
@@ -89,9 +90,14 @@ class PDOS2TT:
         model_id = base_model or (
             str(local_base) if local_base.is_dir() else self.payload["model_id"]
         )
-        runtime = Qwen3ASRModel.from_pretrained(
-            model_id, dtype=torch.bfloat16, device_map=device, max_new_tokens=64,
-        )
+        load_options = {
+            "dtype": torch.bfloat16,
+            "device_map": device,
+            "max_new_tokens": 64,
+        }
+        if not Path(model_id).is_dir():
+            load_options["revision"] = QWEN3_ASR_REVISION
+        runtime = Qwen3ASRModel.from_pretrained(model_id, **load_options)
         with _install_before_initial_cache(self.payload, target_language) as created:
             self.translator = PersistentQwenASRTranslator(
                 runtime, self.payload, max_source_tokens=48, max_target_tokens=128,
