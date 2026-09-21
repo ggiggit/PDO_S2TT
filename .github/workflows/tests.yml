@@ -23,7 +23,7 @@ jobs:
       - name: Install PDO_S2TT package
         run: python -m pip install -e . --no-deps
       - name: Check shell launchers
-        run: bash -n run_fleurs.sh train_pdo.sh
+        run: bash -n scripts/run_fleurs.sh scripts/train_pdo.sh
       - name: Run unit tests
         run: python -m pytest -q
       - name: Compile Python sources
