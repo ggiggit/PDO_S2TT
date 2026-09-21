@@ -9,7 +9,7 @@ directions. This is a stochastic verification run, not the paper checkpoint.
 | Purpose | Repository |
 |:--|:--|
 | Paper inference checkpoint and SFT initialization | [`hf-wzx1205/PDO_S2TT`](https://huggingface.co/hf-wzx1205/PDO_S2TT) |
-| Fresh-run checkpoint, optimizer state, logs, predictions, and metrics | [`hf-wzx1205/PDO_S2TT-reproduction`](https://huggingface.co/hf-wzx1205/PDO_S2TT-reproduction) |
+| Fresh-run checkpoint, optimizer state, logs, predictions, and metrics | [`hf-wzx1205/PDO_S2TT-reproduction`](https://huggingface.co/hf-wzx1205/PDO_S2TT-reproduction/tree/b63f1c648fdebc85783b1324b3d007d36044e5b4) |
 
 The two repositories are intentionally separate so the stochastic reproduction
 checkpoint cannot be mistaken for the model used in the paper tables.
@@ -25,7 +25,9 @@ checkpoint cannot be mistaken for the model used in the paper tables.
 | Wall time | 35,046.17 s (9 h 44 min) |
 | Final model fingerprint | `5afc75eab69c19b33e4b551b0c5710f9088f723b86963efcb63938a0945ae2de` |
 | Inference checkpoint SHA-256 | `bd6bc20f5a8dddd33991822bc17015b985932193abb0f7496d4e5a4df2081129` |
+| Inference checkpoint size | 73,080,509 bytes |
 | Training-state SHA-256 | `c3e94d3be46593cbf32bf66a5f5e55fd481484020cd1217ba3dfc4a466ae0e79` |
+| Training-state size | 251,768,225 bytes |
 
 The training state contains the learned policy, AdamW optimizer, rollout-round
 counter, and Adam-update counter. The complete sanitized training and test logs

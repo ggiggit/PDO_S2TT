@@ -7,9 +7,22 @@ preceding supervised-training pipeline.
 The exact mapping from each paper equation and metric to source code is in the
 dedicated [paper-to-code guide](paper-to-code.md).
 
-## Full run
+## Installation
 
-Four GPUs with at least 24 GB each are recommended.
+Requirements: Linux, Python 3.12, CUDA, four GPUs with at least 24 GB each,
+`git`, `ffmpeg`, and a recent Hugging Face CLI.
+
+```bash
+git clone https://github.com/ggiggit/PDO_S2TT.git
+cd PDO_S2TT
+
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e .
+```
+
+## Full run
 
 ```bash
 # Prepare 2,600 English recordings × five target directions.

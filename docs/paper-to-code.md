@@ -24,7 +24,8 @@ in [`training.md`](training.md).
 | Saved behavior log-probabilities | [`action_logps`](../src/pdo_s2tt/training/policy.py#L213) | Stores masked action probabilities used by the off-policy correction |
 | Closed-loop rollout | [`rollout`](../src/pdo_s2tt/training/trainer.py#L37) | Each sampled complete draft becomes private history for the next acoustic update |
 | Synchronized update | [`update`](../src/pdo_s2tt/training/trainer.py#L248) | Updates decoder LoRA and private-history adapter across distributed ranks |
-| Hyperparameters and seeds | [`train_pdo.py`](../scripts/train_pdo.py#L49) | Freezes optimizer, clipping, batch, seed, and schedule defaults |
+| Frozen run configuration | [`train_pdo.py`](../scripts/train_pdo.py#L104) | Records group size, temperature, optimizer, clipping, batch, and schedule defaults |
+| Default seed and lane construction | [`train_pdo.py`](../scripts/train_pdo.py#L65), [`rollout seed`](../scripts/train_pdo.py#L131) | Expands seed 52 deterministically by round, rank, utterance, and trajectory lane |
 | Training inventory | [`validate_released_manifest`](../src/pdo_s2tt/training/data.py#L21) | Validates all 13,000 multilingual TRAIN units before loading the model |
 
 ## Evaluation mechanics
