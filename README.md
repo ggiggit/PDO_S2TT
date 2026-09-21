@@ -315,6 +315,9 @@ As a reproduction check, the released SFT and PDO checkpoints give the following
 | Released SFT initialization | 30.77 | 85.61 | 44.07 | 2.00 | 2.45 | 3.42 / 6.38 |
 | Released PDO | 31.58 | 85.37 | 44.67 | 2.00 | 2.42 | 3.05 / 5.66 |
 
+> [!TIP]
+> **Fresh public-code verification.** Starting only from the released SFT checkpoint, a clean seed-52 run completed all 407 rollout rounds and 1,625 AdamW updates in 9.74 hours on four RTX 4090 GPUs. Its five-direction FLEURS TEST macro was **31.84 BLEU / 85.34 COMET / 44.87 chrF++ / 3.01 mean LAAL-CU**, with 3,235/3,235 non-empty outputs. This stochastic verification run is separate from the released paper checkpoint.
+
 ### DEV checkpoint selection used in the paper
 
 Checkpoint selection did not use the PDO reward or a weighted quality-latency score. We first retained checkpoints with no empty outputs, COMET within 0.30 of the best candidate from the same run, BLEU within 1.0 of that run's best candidate, and COMET no more than 0.50 below the selected History-SFT checkpoint. Among the remaining checkpoints, we selected lexicographically by lower LAAL-CU mean, lower LAAL-CU P90, lower FRD, and finally higher COMET. A candidate was promoted only if it passed the quality filters and improved either LAAL-CU mean by at least 0.20 s or LAAL-CU P90 by at least 0.50 s relative to History-SFT.
