@@ -29,7 +29,6 @@ pdo-s2tt = "pdo_s2tt.cli:main"
 Homepage = "https://github.com/ggiggit/PDO_S2TT"
 Repository = "https://github.com/ggiggit/PDO_S2TT"
 Models = "https://huggingface.co/hf-wzx1205/PDO_S2TT"
-Reproduction = "https://huggingface.co/hf-wzx1205/PDO_S2TT-reproduction"
 Issues = "https://github.com/ggiggit/PDO_S2TT/issues"
 
 [tool.setuptools]

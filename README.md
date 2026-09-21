@@ -4,10 +4,9 @@
 
 ### Persistent Delivery Optimization for Streaming Speech-to-Text Translation with Revisions
 
-Official repository for the **ICASSP 2027 submission**
+Code accompanying an **ICASSP 2027 submission**
 
-[![Paper model](https://img.shields.io/badge/🤗_Paper_model-PDO__S2TT-FFD21E)](https://huggingface.co/hf-wzx1205/PDO_S2TT)
-[![Reproduction](https://img.shields.io/badge/🤗_Reproduction-artifacts-FFD21E)](https://huggingface.co/hf-wzx1205/PDO_S2TT-reproduction)
+[![Model weights](https://img.shields.io/badge/🤗_Model_weights-PDO__S2TT-FFD21E)](https://huggingface.co/hf-wzx1205/PDO_S2TT)
 [![Tests](https://github.com/ggiggit/PDO_S2TT/actions/workflows/tests.yml/badge.svg)](https://github.com/ggiggit/PDO_S2TT/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/License-Apache--2.0-4C8BF5)](LICENSE)
 
@@ -28,16 +27,14 @@ without exposing an intermediate transcript.
 | **Train PDO** | [Training reproduction](docs/training.md) | SFT initialization, four-GPU command, resume, exact recipe, DEV selection |
 | **Match paper formulas to code** | [Paper ↔ code](docs/paper-to-code.md) | Eq. (1)–(4), reward units, baseline, sampling, loss, LAAL-CU |
 
-## Checkpoints
+## Model weights
 
-| Release | Use | Link |
+Both released weights are hosted at [🤗 `hf-wzx1205/PDO_S2TT`](https://huggingface.co/hf-wzx1205/PDO_S2TT).
+
+| File | Use | Download |
 |:--|:--|:--|
-| **Paper release** | Paper inference model + SFT training initialization | [🤗 `hf-wzx1205/PDO_S2TT`](https://huggingface.co/hf-wzx1205/PDO_S2TT) |
-| **Independent reproduction** | Fresh checkpoint + optimizer state + training/test logs + trajectories | [🤗 `hf-wzx1205/PDO_S2TT-reproduction`](https://huggingface.co/hf-wzx1205/PDO_S2TT-reproduction) |
-
-> [!IMPORTANT]
-> Reproduction artifacts are deliberately separate from the paper checkpoint, so
-> the independently sampled model cannot be mistaken for the submitted result.
+| `pdo_s2tt.pt` | Main inference checkpoint | [Download](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/62c27b03aa1d7da1b739e43e815796029ee243f5/pdo_s2tt.pt) |
+| `pdo_s2tt_sft.pt` | SFT initialization for PDO training | [Download](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/62c27b03aa1d7da1b739e43e815796029ee243f5/pdo_s2tt_sft.pt) |
 
 ## Quick inference
 
@@ -79,6 +76,17 @@ The frozen recipe uses four 24 GB GPUs, 407 rollout rounds, and 1,625 AdamW
 updates. It saves an inference checkpoint and resumable optimizer state every
 round. See the [training guide](docs/training.md) before starting a full run.
 
+<details>
+<summary><strong>Independent public-code verification</strong></summary>
+
+The released training path was independently run from the SFT initialization
+through all 407 rounds and five-direction TEST evaluation. Detailed logs,
+optimizer state, predictions, and metrics are kept in the
+[reproduction record](docs/reproduction.md), with large artifacts hosted in a
+[separate archive](https://huggingface.co/hf-wzx1205/PDO_S2TT-reproduction).
+
+</details>
+
 ## Core result
 
 FLEURS TEST, five-direction macro, 647 examples per direction:
@@ -86,11 +94,6 @@ FLEURS TEST, five-direction macro, 647 examples per direction:
 | BLEU ↑ | COMET ↑ | chrF++ ↑ | FTL ↓ | FRD ↓ | LAAL-CU mean / P90 ↓ | Coverage |
 |--:|--:|--:|--:|--:|--:|--:|
 | **31.58** | **85.37** | **44.67** | **2.00 s** | **2.42 s** | **3.05 / 5.66 s** | **100%** |
-
-The public training path was also independently run from SFT initialization through
-all five TEST directions: 407/407 rounds, 1,625/1,625 updates, and 3,235/3,235
-non-empty outputs. See the [reproduction record](docs/reproduction.md) and
-[downloadable artifacts](https://huggingface.co/hf-wzx1205/PDO_S2TT-reproduction).
 
 ## Repository layout
 
@@ -103,16 +106,7 @@ references/                frozen FLEURS identities and TRAIN targets
 tests/                     reward, policy, evaluator, inventory tests
 ```
 
-## Citation
+## License
 
-```bibtex
-@inproceedings{pdo_s2tt_2027,
-  title     = {Persistent Delivery Optimization for Streaming Speech-to-Text Translation with Revisions},
-  booktitle = {IEEE International Conference on Acoustics, Speech and Signal Processing},
-  year      = {2027}
-}
-```
-
-Author metadata will be added after anonymous review. Code and PDO checkpoints are
-released under [Apache-2.0](LICENSE); upstream models and datasets retain their own
-licenses.
+Code and PDO checkpoints are released under [Apache-2.0](LICENSE). Upstream models
+and datasets retain their own licenses.
