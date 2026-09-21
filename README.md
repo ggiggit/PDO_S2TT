@@ -12,7 +12,7 @@ Official inference, evaluation, and PDO training repository for the **ICASSP 202
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Directions](https://img.shields.io/badge/Directions-5-2E8B57.svg)](#released-fleurs-test-results)
 
-[**Checkpoints**](#model-checkpoint) · [**Quick start**](#quick-start-reproduce-enzh) · [**Results**](#released-fleurs-test-results) · [**Train PDO**](#reproduce-pdo-training) · [**Paper-to-code map**](#paper-to-code-map)
+[**Checkpoints**](#model-checkpoint) · [**Quick start**](#quick-start-reproduce-enzh) · [**Results**](#released-fleurs-test-results) · [**Train PDO**](#reproduce-pdo-training) · [**Paper ↔ code**](#paper-code) · [**Implementation notes**](#implementation-details-beyond-the-paper)
 
 </div>
 
@@ -25,23 +25,48 @@ PDO translates a growing English speech stream directly into a revisable target-
 - **One-command reproduction:** download FLEURS TEST, run all streaming stages, report every paper metric, and verify released results.
 - **Reproducible RL stage:** download the released SFT initialization and run the paper's G=4 multilingual PDO recipe on four GPUs.
 
-## Paper-to-code map
+## Method at a glance
+
+```mermaid
+flowchart LR
+    A[Growing speech prefix] --> B[History-conditioned policy]
+    H[Previous visible draft] --> B
+    B --> C[Revised complete draft]
+    C --> D[K = 4 closed-loop trajectories]
+    D --> E[Persistent prefixes, Eq. 1]
+    E --> F[Persistent-delivery utility, Eq. 2]
+    F --> G[Full-trajectory returns, Eq. 3]
+    G --> I[Clipped PDO update, Eq. 4]
+```
+
+At inference, only the left-hand streaming path is used: each speech update and previous visible draft produce a new complete target-language draft. The trajectory construction and PDO update are training-only.
+
+<a id="paper-code"></a>
+
+## Paper ↔ code
+
+This repository is the executable companion to the five-page paper. The table below maps every method equation and the main evaluation definitions to the exact implementation.
 
 | Paper component | Executable implementation |
 |:--|:--|
 | Eq. (1): persistent prefix | [`persistent_prefixes`](src/pdo_s2tt/training/reward.py#L63) |
 | Eq. (2): persistent-delivery utility | [`trajectory_ledger`](src/pdo_s2tt/training/reward.py#L88) |
-| Eq. (3): full-trajectory return | [`full_trajectory_returns`](src/pdo_s2tt/training/reward.py#L130) |
+| Eq. (3): trajectory credit and full return | [`trajectory_ledger`](src/pdo_s2tt/training/reward.py#L88), [`full_trajectory_returns`](src/pdo_s2tt/training/reward.py#L130) |
 | Eq. (4): clipped PDO loss | [`pdo_loss`](src/pdo_s2tt/training/policy.py#L229) |
 | Reward text normalization | [`units`](src/pdo_s2tt/training/reward.py#L26) |
 | Group-relative baseline / zero variance | [`_standardize`](src/pdo_s2tt/training/reward.py#L140) |
 | G=4 behavior-policy rollout | [`sample_group`](src/pdo_s2tt/training/policy.py#L137), [`rollout`](src/pdo_s2tt/training/trainer.py#L37) |
 | Behavior temperature and saved log-probabilities | [`sample_group`](src/pdo_s2tt/training/policy.py#L137), [`action_logps`](src/pdo_s2tt/training/policy.py#L213) |
 | Synchronized policy update | [`update`](src/pdo_s2tt/training/trainer.py#L248) |
+| RL hyperparameters and seed construction | [`train_pdo.py`](scripts/train_pdo.py#L49), [`train_pdo.sh`](train_pdo.sh) |
 | Frozen multilingual TRAIN inventory | [`validate_released_manifest`](src/pdo_s2tt/training/data.py#L21) |
 | LAAL-CU | [`stable_emission_times`](src/pdo_s2tt/simultaneous_metrics.py#L24), [`sentence_latency_metrics`](src/pdo_s2tt/simultaneous_metrics.py#L195) |
 | Erasure and finalization | [`revision_record`](src/pdo_s2tt/evaluation.py#L140) |
-| Table 3 controlled RL variants | [Exact definitions](#controlled-rl-baselines-in-table-3) |
+| DEV checkpoint selection | [Exact criterion](#dev-checkpoint-selection-used-in-the-paper) |
+| Table 3 controlled RL variants | [Matched-control definitions](#controlled-rl-baselines-in-table-3) |
+
+> [!NOTE]
+> The supported training command in this release executes **PDO**. Current-draft RL, Hibiki-Zero-style RL, and HPO-style RL are documented as matched experimental controls so that Table 3 is unambiguous; they are not presented as additional public training entry points.
 
 ## Model checkpoint
 
@@ -234,8 +259,24 @@ On four RTX 4090 GPUs, a complete run takes approximately 10 hours. The trainer 
 
 For every displayed draft, the process term scores only the prefix that remains unchanged in all later drafts. The terminal term is language-aware sentence BLEU. The complete future return `G_t = Φ_T − Φ_(t−1)` is standardized across the four trajectories at each event; no value model or direct latency reward is used. [`reward.py`](src/pdo_s2tt/training/reward.py) contains the complete reward definition.
 
+## Implementation details beyond the paper
+
+The paper states the objective and update rule; this section freezes the engineering choices needed for an exact reproduction.
+
+| Detail | Released behavior | Source of truth |
+|:--|:--|:--|
+| Reward units | CJK characters for Zh/Ja; normalized words for De/Es/Fr | [`units`](src/pdo_s2tt/training/reward.py#L26) |
+| Process / terminal score | LCS recall / effective-order sentence BLEU | [`trajectory_ledger`](src/pdo_s2tt/training/reward.py#L88) |
+| Reward baseline | Per-event, within-utterance standardization over four trajectories; no value model | [`persistent_delivery_returns`](src/pdo_s2tt/training/reward.py#L149) |
+| Zero-variance group | Variance ≤ `1e-16` gives four zero weights | [`_standardize`](src/pdo_s2tt/training/reward.py#L140) |
+| Behavior policy | Temperature `.2`, four persistent RNG lanes, masked token sampling | [`sample_group`](src/pdo_s2tt/training/policy.py#L137) |
+| Policy update | PPO clip `.2`, truncated behavior correction `c_max=2` | [`pdo_loss`](src/pdo_s2tt/training/policy.py#L229) |
+| Optimization | AdamW `1e-6`, weight decay `.01`, gradient clip `1.0` | [`train_pdo.py`](scripts/train_pdo.py#L49) |
+| Default seed | `52`, deterministically expanded by round/rank/utterance/lane | [`train_pdo.py`](scripts/train_pdo.py#L65) |
+| LAAL-CU | Earliest source time after which each final prefix remains unchanged | [`simultaneous_metrics.py`](src/pdo_s2tt/simultaneous_metrics.py) |
+
 <details>
-<summary><strong>Exact implementation contract (normalization, reward, sampling, and seeds)</strong></summary>
+<summary><strong>Full normalization, reward, sampling, and seed contract</strong></summary>
 
 ### Text units and normalization
 
