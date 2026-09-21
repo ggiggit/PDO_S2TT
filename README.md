@@ -2,7 +2,8 @@
 
 Code accompanying an **ICASSP 2027 submission**.
 
-[![Model weights](https://img.shields.io/badge/🤗_Model_weights-PDO__S2TT-FFD21E)](https://huggingface.co/hf-wzx1205/PDO_S2TT)
+[![Hugging Face](https://img.shields.io/badge/🤗_Hugging_Face-model_weights-FFD21E)](https://huggingface.co/hf-wzx1205/PDO_S2TT)
+[![ModelScope](https://img.shields.io/badge/ModelScope-model_weights-624AFF)](https://modelscope.cn/models/wanzixiang/PDO_S2TT)
 [![Tests](https://github.com/ggiggit/PDO_S2TT/actions/workflows/tests.yml/badge.svg)](https://github.com/ggiggit/PDO_S2TT/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/License-Apache--2.0-4C8BF5)](LICENSE)
 
@@ -23,7 +24,9 @@ without exposing an intermediate transcript.
 
 ## Model weights
 
-Both released weights are hosted at [🤗 `hf-wzx1205/PDO_S2TT`](https://huggingface.co/hf-wzx1205/PDO_S2TT).
+The released weights are mirrored on
+[Hugging Face](https://huggingface.co/hf-wzx1205/PDO_S2TT) and
+[ModelScope](https://modelscope.cn/models/wanzixiang/PDO_S2TT).
 
 | File | Use | Download |
 |:--|:--|:--|
