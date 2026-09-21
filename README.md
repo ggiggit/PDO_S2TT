@@ -1,18 +1,12 @@
-<div align="center">
+# Persistent Delivery Optimization for Streaming Speech-to-Text Translation with Revisions
 
-# PDO_S2TT
-
-### Persistent Delivery Optimization for Streaming Speech-to-Text Translation with Revisions
-
-Code accompanying an **ICASSP 2027 submission**
+Code accompanying an **ICASSP 2027 submission**.
 
 [![Model weights](https://img.shields.io/badge/🤗_Model_weights-PDO__S2TT-FFD21E)](https://huggingface.co/hf-wzx1205/PDO_S2TT)
 [![Tests](https://github.com/ggiggit/PDO_S2TT/actions/workflows/tests.yml/badge.svg)](https://github.com/ggiggit/PDO_S2TT/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/License-Apache--2.0-4C8BF5)](LICENSE)
 
 **Direct streaming S2TT · Revision-aware training · Five target languages**
-
-</div>
 
 PDO trains a streaming speech-to-text translation model to emit content that
 appears early **and remains unchanged**. The model translates growing English
