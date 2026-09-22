@@ -2,6 +2,9 @@ import importlib.util
 import json
 from pathlib import Path
 import sys
+import types
+
+from pdo_s2tt.evaluation import quality_metrics
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -130,3 +133,27 @@ def test_macro_evaluation_can_disable_released_checkpoint_check(monkeypatch, tmp
     result = json.loads(output.read_text(encoding="utf-8"))
     assert result["reproduction_check"]["enabled"] is False
     assert result["quality"]["records"] == 5 * 647
+
+
+def test_quality_metrics_resolves_pinned_comet_checkpoint(monkeypatch, tmp_path):
+    checkpoint = tmp_path / "checkpoints" / "model.ckpt"
+    checkpoint.parent.mkdir()
+    checkpoint.touch()
+
+    class FakeModel:
+        def predict(self, rows, batch_size, gpus):
+            assert rows == [{"src": "hello", "mt": "hallo", "ref": "hallo"}]
+            return types.SimpleNamespace(system_score=0.75)
+
+    comet = types.ModuleType("comet")
+    comet.load_from_checkpoint = lambda path: FakeModel()
+    hub = types.ModuleType("huggingface_hub")
+    hub.snapshot_download = lambda *args, **kwargs: str(tmp_path)
+    monkeypatch.setitem(sys.modules, "comet", comet)
+    monkeypatch.setitem(sys.modules, "huggingface_hub", hub)
+
+    result = quality_metrics(
+        [{"source_text": "hello", "translation": "hallo", "reference": "hallo"}],
+        "de",
+    )
+    assert result["COMET"] == 75.0
