@@ -18,7 +18,7 @@ from sacrebleu.metrics import BLEU
 
 LANGUAGES = {"zh", "de", "es", "ja", "fr"}
 TERMINAL_HOLD_SECONDS = 2.0
-_CJK = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\u3040-\u30ff]")
+_CJK = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\u3040-\u30ff\u31f0-\u31ff]")
 _WORD = re.compile(r"\w+(?:['’-]\w+)*", re.UNICODE)
 _BLEU = BLEU(effective_order=True, tokenize="none")
 

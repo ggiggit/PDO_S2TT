@@ -12,12 +12,14 @@ import numpy as np
 
 
 WORD_PATTERN = re.compile(
-    r"[\u3400-\u4dbf\u4e00-\u9fff]|[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*"
+    r"[\u3400-\u4dbf\u4e00-\u9fff\u3040-\u30ff\u31f0-\u31ff]"
+    r"|[A-Za-z\u00c0-\u024f\u1e00-\u1eff0-9]+"
+    r"(?:['’-][A-Za-z\u00c0-\u024f\u1e00-\u1eff0-9]+)*"
 )
 
 
 def words(text: str) -> list[str]:
-    """Tokenize Latin text by word and CJK text by Han character."""
+    """Tokenize Latin text by word and Han/kana text by character."""
     return [value.casefold() for value in WORD_PATTERN.findall(str(text))]
 
 

@@ -10,7 +10,7 @@ from typing import Any
 from .simultaneous_metrics import corpus_latency_metrics
 
 
-CJK = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\u3040-\u30ff]")
+CJK = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\u3040-\u30ff\u31f0-\u31ff]")
 WORD = re.compile(r"\w+(?:['’-]\w+)*", re.UNICODE)
 
 
