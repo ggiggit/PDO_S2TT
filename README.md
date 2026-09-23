@@ -87,13 +87,12 @@ optimizer state, predictions, and metrics are kept in the
 
 </details>
 
-## Core result
+## Results
 
-FLEURS TEST, five-direction macro, 647 examples per direction:
+FLEURS TEST results reported in Table 2 of the paper (647 examples per
+direction):
 
-| BLEU ↑ | COMET ↑ | chrF++ ↑ | FTL ↓ | FRD ↓ | LAAL-CU mean / P90 ↓ | Coverage |
-|--:|--:|--:|--:|--:|--:|--:|
-| **31.58** | **85.37** | **44.67** | **2.00 s** | **2.42 s** | **3.05 / 5.66 s** | **100%** |
+![Table 2: in-domain FLEURS TEST results](assets/table2.png)
 
 ## Repository layout
 
