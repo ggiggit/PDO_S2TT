@@ -1,7 +1,10 @@
 # Persistent Delivery Optimization for Streaming Speech-to-Text Translation with Revisions
 
-Code accompanying an **ICASSP 2027 submission**.
+Official code and checkpoints for
+[*Persistent Delivery Optimization for Streaming Speech-to-Text Translation with Revisions*](https://arxiv.org/abs/2609.26427),
+submitted to **ICASSP 2027**.
 
+[![arXiv](https://img.shields.io/badge/arXiv-2609.26427-b31b1b.svg)](https://arxiv.org/abs/2609.26427)
 [![Hugging Face](https://img.shields.io/badge/🤗_Hugging_Face-model_weights-FFD21E)](https://huggingface.co/hf-wzx1205/PDO_S2TT)
 [![ModelScope](https://img.shields.io/badge/ModelScope-model_weights-624AFF)](https://modelscope.cn/models/wanzixiang/PDO_S2TT)
 [![Tests](https://github.com/ggiggit/PDO_S2TT/actions/workflows/tests.yml/badge.svg)](https://github.com/ggiggit/PDO_S2TT/actions/workflows/tests.yml)
