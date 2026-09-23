@@ -39,7 +39,7 @@ binaries and trajectories live only on Hugging Face.
 | Checkpoint | BLEU ↑ | COMET ↑ | chrF++ ↑ | FTL ↓ | FRD ↓ | LAAL-CU mean / P90 ↓ | Coverage |
 |:--|--:|--:|--:|--:|--:|--:|--:|
 | Paper PDO | 31.580 | 85.373 | 44.673 | 2.000 | 2.419 | 3.049 / 5.660 | 100% |
-| Fresh reproduction | 31.838 | 85.344 | 44.871 | 2.000 | 2.422 | 3.005 / 5.584 | 100% |
+| Fresh reproduction | 31.838 | 85.344 | 44.871 | 2.000 | 2.422 | 2.981 / 5.479 | 100% |
 
 | Checkpoint | RTF ↓ | Norm. erasure ↓ | Age erasure ↓ | First stable ↓ | Mean finalization ↓ |
 |:--|--:|--:|--:|--:|--:|
@@ -50,6 +50,10 @@ Small differences are consistent with stochastic on-policy sampling. The fresh
 run recovered the same quality/latency operating point, produced 3,235/3,235
 non-empty translations, and completed without traceback, CUDA OOM, NaN, or
 non-finite-value failure.
+
+The saved trajectories were rescored on 2026-09-23 with evaluator commit
+`7636709`. This corrected Japanese kana and accented-Latin tokenization in
+LAAL-CU; quality, FTL, FRD, RTF, and revision metrics are unchanged.
 
 ## Integrity checks
 

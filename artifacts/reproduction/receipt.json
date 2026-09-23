@@ -1,6 +1,8 @@
 {
   "status": "complete",
   "date": "2026-09-21",
+  "metric_rescore_date": "2026-09-23",
+  "evaluator_commit": "7636709",
   "seed": 52,
   "hardware": "4 x NVIDIA RTX 4090",
   "training": {
@@ -23,8 +25,8 @@
     "chrF++": 44.87069302210444,
     "FTL": 2.0,
     "FRD": 2.422066589920181,
-    "LAAL_CU_mean": 3.00543871152365,
-    "LAAL_CU_p90": 5.584282352941176,
+    "LAAL_CU_mean": 2.9807881518182238,
+    "LAAL_CU_p90": 5.479446670976081,
     "RTF": 0.5298802921394401,
     "normalized_erasure": 0.9471177835369009,
     "age_weighted_erasure": 2.000362371548876,
