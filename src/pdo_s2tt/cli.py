@@ -23,10 +23,19 @@ def main() -> None:
         help="base model ID or local directory (auto-detects checkpoints/Qwen3-ASR-1.7B)",
     )
     parser.add_argument("--device", default="cuda:0")
+    parser.add_argument(
+        "--execution-mode", choices=("eager", "cuda_graphs"), default="cuda_graphs"
+    )
     parser.add_argument("--jsonl", action="store_true", help="emit complete event objects")
     args = parser.parse_args()
 
-    model = PDOS2TT(args.checkpoint, args.target, args.base_model, args.device)
+    model = PDOS2TT(
+        args.checkpoint,
+        args.target,
+        args.base_model,
+        args.device,
+        execution_mode=args.execution_mode,
+    )
     observed = []
     for event in model.stream(packets(read_wav(args.audio))):
         observed.append(event)
@@ -36,6 +45,7 @@ def main() -> None:
             print(f"[{event.audio_time:6.2f}s] {event.target_prefix}", flush=True)
     if not observed:
         raise RuntimeError("the audio produced no streaming events")
+    model.close_execution_graphs()
 
 
 if __name__ == "__main__":

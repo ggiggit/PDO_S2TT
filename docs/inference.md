@@ -1,6 +1,6 @@
 # Inference and evaluation
 
-This guide reproduces the paper checkpoint on the official English FLEURS TEST
+This guide evaluates the latest finite-window checkpoint on the official English FLEURS TEST
 split. It covers En→Zh, En→De, En→Es, En→Ja, and En→Fr and reports every metric
 used in the paper.
 
@@ -20,13 +20,11 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-## Download the paper checkpoint
+## Download the released checkpoint
 
 ```bash
 mkdir -p checkpoints
-hf download hf-wzx1205/PDO_S2TT pdo_s2tt.pt \
-  --revision 62c27b03aa1d7da1b739e43e815796029ee243f5 \
-  --local-dir checkpoints
+hf download hf-wzx1205/PDO_S2TT pdo_s2tt.pt --local-dir checkpoints
 ```
 
 The Qwen3-ASR-1.7B base model and WMT22-COMET-DA are downloaded automatically
@@ -93,6 +91,10 @@ Inference is resumable: rerunning skips completed utterances. Add `--limit 1`
 to inference and evaluation for a one-example smoke test. Add `--skip-comet` for
 a quick deterministic-only check; the output then marks full reproduction as
 incomplete.
+
+The checkpoint metadata enables its 24-second bounded window automatically.
+The command-line tools use the prewarmed CUDA-graph executor by default; pass
+`--execution-mode eager` to run the unoptimized executor for comparison.
 
 ## Metric conventions
 

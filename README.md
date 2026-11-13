@@ -31,10 +31,14 @@ The released weights are mirrored on
 [Hugging Face](https://huggingface.co/hf-wzx1205/PDO_S2TT) and
 [ModelScope](https://modelscope.cn/models/wanzixiang/PDO_S2TT).
 
-| File | Use | Download |
-|:--|:--|:--|
-| `pdo_s2tt.pt` | Main inference checkpoint | [Download](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/62c27b03aa1d7da1b739e43e815796029ee243f5/pdo_s2tt.pt) |
-| `pdo_s2tt_sft.pt` | SFT initialization for PDO training | [Download](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/62c27b03aa1d7da1b739e43e815796029ee243f5/pdo_s2tt_sft.pt) |
+| File | Use | SHA-256 | Download |
+|:--|:--|:--|:--|
+| `pdo_s2tt.pt` | Latest five-language finite-window PDO checkpoint | `194fba85b1a87547b1d180d0d98416cdd7ee694dceb6f8a53577fec9a37a08da` | [Download](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/main/pdo_s2tt.pt) |
+| `pdo_s2tt_sft.pt` | Latest five-language finite-window SFT initialization | `10e6cb0c9b7f739bfc60ac3456dadc55c487dce57ee131d6e2d437d714ca1f78` | [Download](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/main/pdo_s2tt_sft.pt) |
+
+Both checkpoints use one shared five-language model with a 24-second acoustic
+window, 12 two-second events, six-event retirement, and a 128-token visible
+history cap.
 
 ## Quick inference
 
@@ -49,9 +53,7 @@ source .venv/bin/activate
 python -m pip install -e .
 
 mkdir -p checkpoints
-hf download hf-wzx1205/PDO_S2TT pdo_s2tt.pt \
-  --revision 62c27b03aa1d7da1b739e43e815796029ee243f5 \
-  --local-dir checkpoints
+hf download hf-wzx1205/PDO_S2TT pdo_s2tt.pt --local-dir checkpoints
 
 bash scripts/run_fleurs.sh
 ```
@@ -65,9 +67,7 @@ commented in [`scripts/run_fleurs.sh`](scripts/run_fleurs.sh).
 ```bash
 python scripts/prepare_fleurs_train.py
 
-hf download hf-wzx1205/PDO_S2TT pdo_s2tt_sft.pt \
-  --revision 62c27b03aa1d7da1b739e43e815796029ee243f5 \
-  --local-dir checkpoints
+hf download hf-wzx1205/PDO_S2TT pdo_s2tt_sft.pt --local-dir checkpoints
 
 bash scripts/train_pdo.sh
 ```
@@ -89,8 +89,18 @@ optimizer state, predictions, and metrics are kept in the
 
 ## Results
 
-FLEURS TEST results reported in Table 2 of the paper (647 examples per
-direction):
+The latest finite-window PDO checkpoint was evaluated on the same 647-example
+FLEURS TEST population in each of five directions (3,235 sessions total):
+
+| BLEU | COMET ×100 | chrF++ | FRD | stable LAAL-CU | normalized erasure | RTF |
+|--:|--:|--:|--:|--:|--:|--:|
+| 31.2355 | 85.1594 | 44.4709 | 2.2782 s | 3.0057 s | 0.9211 | 0.3213 |
+
+FRD and RTF depend on hardware and runtime. Quality, stable LAAL-CU, and
+revision metrics use the same definitions as the paper. The checkpoint kept
+its acoustic state bounded in all five directions.
+
+For reference, Table 2 from the original paper checkpoint is retained below:
 
 ![Table 2: in-domain FLEURS TEST results](assets/table2.png)
 

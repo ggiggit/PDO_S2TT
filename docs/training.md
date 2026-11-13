@@ -30,9 +30,7 @@ python scripts/prepare_fleurs_train.py
 
 # Download the SFT initialization.
 mkdir -p checkpoints
-hf download hf-wzx1205/PDO_S2TT pdo_s2tt_sft.pt \
-  --revision 62c27b03aa1d7da1b739e43e815796029ee243f5 \
-  --local-dir checkpoints
+hf download hf-wzx1205/PDO_S2TT pdo_s2tt_sft.pt --local-dir checkpoints
 
 # Run PDO on four GPUs.
 bash scripts/train_pdo.sh

@@ -7,6 +7,8 @@ from typing import Iterator
 import torch
 
 from .history import PrivateHistoryAdapter, install_private_runtime
+from .execution_graphs import QueryOneExecutionGraphs
+from .delivery_ledger import install_causal_window
 from .languages import instructions
 from .revisions import QWEN3_ASR_REVISION
 
@@ -80,10 +82,14 @@ class PDOS2TT:
 
     def __init__(self, checkpoint: str | Path, target_language: str,
                  base_model: str | None = None,
-                 device: str = "cuda:0") -> None:
+                 device: str = "cuda:0",
+                 execution_mode: str = "eager") -> None:
         from qwen_asr import Qwen3ASRModel
         from streaming_s2tt.qwen_asr_streaming_runtime import PersistentQwenASRTranslator
 
+        execution_mode = str(execution_mode)
+        if execution_mode not in {"eager", "cuda_graphs"}:
+            raise ValueError("execution_mode must be eager or cuda_graphs")
         self.payload = load_checkpoint(checkpoint)
         target, _, _ = instructions(target_language)
         local_base = Path("checkpoints/Qwen3-ASR-1.7B")
@@ -108,12 +114,57 @@ class PDOS2TT:
             )
         if len(created) != 1 or created[0] is not self.translator.decoder:
             raise RuntimeError("the history-conditioned decoder was not installed exactly once")
+        self._window_config = self.payload["config"].get("finite_window_runtime")
+        self._window_controller = None
+        self._install_window()
+        self.execution_mode = execution_mode
+        self._execution_graphs = None
+        if execution_mode == "cuda_graphs":
+            adapter = created[0]._pdo_history_adapter
+            self._execution_graphs = QueryOneExecutionGraphs(
+                self.translator.llm,
+                lambda: adapter._context.get() is not None,
+            )
+
+    def _install_window(self) -> None:
+        if self._window_config is None:
+            return
+        config = self._window_config
+        self._window_controller = install_causal_window(
+            self.translator,
+            window_blocks=int(config["event_cap"]),
+            retire_blocks=int(config["retire_events"]),
+            source_frame_cap=int(config["source_frame_cap"]),
+        )
 
     def reset(self) -> None:
+        if self._window_controller is not None:
+            self._window_controller.uninstall(self.translator)
         self.translator.reset()
+        self._window_controller = None
+        self._install_window()
 
     def accept_pcm(self, pcm: bytes, final: bool = False):
         return self.translator.accept_pcm(pcm, final=final)
+
+    def execution_stats(self) -> dict:
+        if self._execution_graphs is None:
+            return {"mode": "eager", "resources": {}}
+        return {
+            "mode": "cuda_graphs",
+            "resources": self._execution_graphs.stats(),
+            "signatures": self._execution_graphs.signature_stats(),
+        }
+
+    def window_stats(self) -> dict:
+        if self._window_controller is None:
+            return {"enabled": False}
+        return {"enabled": True, **self._window_controller.stats()}
+
+    def close_execution_graphs(self) -> None:
+        if self._execution_graphs is not None:
+            self._execution_graphs.close()
+            self._execution_graphs = None
 
     def stream(self, packets: Iterator[tuple[bytes, bool]]):
         for pcm, final in packets:

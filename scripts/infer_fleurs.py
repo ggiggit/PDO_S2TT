@@ -37,6 +37,10 @@ def main() -> None:
         help="base model ID or local directory (auto-detects checkpoints/Qwen3-ASR-1.7B)",
     )
     parser.add_argument("--device", default="cuda:0")
+    parser.add_argument(
+        "--execution-mode", choices=("eager", "cuda_graphs"), default="cuda_graphs",
+    )
+    parser.add_argument("--execution-stats-output", type=Path)
     parser.add_argument("--limit", type=int, help="run only the first N examples")
     args = parser.parse_args()
 
@@ -67,7 +71,10 @@ def main() -> None:
         print(f"Already complete: {len(completed)} predictions in {output}")
         return
 
-    model = PDOS2TT(checkpoint, args.target, args.base_model, args.device)
+    model = PDOS2TT(
+        checkpoint, args.target, args.base_model, args.device,
+        execution_mode=args.execution_mode,
+    )
     with output.open("a", encoding="utf-8", newline="\n") as stream:
         for index, row in enumerate(pending, 1):
             model.reset()
@@ -105,10 +112,20 @@ def main() -> None:
                 "event_count": len(events),
                 "compute_time_sec": elapsed,
                 "compute_rtf": elapsed / float(row["audio_duration_sec"]),
+                "execution_mode": args.execution_mode,
+                "window_stats": model.window_stats(),
             }
             stream.write(json.dumps(result, ensure_ascii=False) + "\n")
             stream.flush()
             print(f"[{len(completed) + index}/{len(rows)}] {row['id']}", flush=True)
+    execution_stats = model.execution_stats()
+    model.close_execution_graphs()
+    if args.execution_stats_output is not None:
+        args.execution_stats_output.parent.mkdir(parents=True, exist_ok=True)
+        args.execution_stats_output.write_text(
+            json.dumps(execution_stats, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
     print(f"Saved {len(rows)} predictions: {output}")
 
 

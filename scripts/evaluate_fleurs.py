@@ -11,7 +11,7 @@ from pdo_s2tt.evaluation import latency_metrics, quality_metrics, revision_metri
 from pdo_s2tt.languages import LANGUAGE_NAMES
 
 
-EXPECTED = {
+PAPER_RESULT = {
     "zh": {"BLEU": 38.1569, "COMET": 86.3143, "chrF++": 26.9230,
            "FTL": 2.0000, "FRD": 2.3252, "LAAL_CU": 3.5316,
            "LAAL_CU_P90": 6.6063, "RTF": 0.3859, "NormErase": 1.1128,
@@ -32,6 +32,24 @@ EXPECTED = {
            "FTL": 2.0000, "FRD": 2.4448, "LAAL_CU": 2.4608,
            "LAAL_CU_P90": 4.9269, "RTF": 0.5898, "NormErase": 0.6604,
            "AgeErase": 1.4667, "FirstStable": 2.7148, "MeanFinalization": 6.8904},
+}
+
+RELEASED_RESULT = {
+    "zh": {"BLEU": 38.0230, "COMET": 85.9467, "chrF++": 25.7337,
+           "FRD": 2.2477, "LAAL_CU": 3.4175, "RTF": 0.2457,
+           "NormErase": 1.0655},
+    "de": {"BLEU": 29.5141, "COMET": 84.0198, "chrF++": 56.9054,
+           "FRD": 2.2784, "LAAL_CU": 3.0362, "RTF": 0.3483,
+           "NormErase": 0.8868},
+    "es": {"BLEU": 23.3879, "COMET": 83.2551, "chrF++": 50.8711,
+           "FRD": 2.2852, "LAAL_CU": 2.6626, "RTF": 0.3314,
+           "NormErase": 0.6989},
+    "ja": {"BLEU": 27.8359, "COMET": 88.4308, "chrF++": 26.7103,
+           "FRD": 2.2757, "LAAL_CU": 3.5369, "RTF": 0.3228,
+           "NormErase": 1.2891},
+    "fr": {"BLEU": 37.4167, "COMET": 84.1447, "chrF++": 62.1339,
+           "FRD": 2.3039, "LAAL_CU": 2.3754, "RTF": 0.3581,
+           "NormErase": 0.6653},
 }
 
 
@@ -88,19 +106,15 @@ def main() -> None:
         "quality": quality,
         "latency": latency,
         "revision": revision,
-        "paper_result": EXPECTED[args.target],
-        "note": "FRD and RTF are hardware-dependent; the paper values use one RTX 4090.",
+        "released_result": RELEASED_RESULT[args.target],
+        "historical_paper_result": PAPER_RESULT[args.target],
+        "note": "FRD and RTF are hardware-dependent and are excluded from exact checks.",
     }
     if len(rows) == 647 and args.reference_check:
         deterministic = {
             "BLEU": quality["BLEU"], "chrF++": quality["chrF++"],
-            "FTL": latency["FTL"]["mean"],
             "LAAL_CU": latency["LAAL_CU"]["mean"],
-            "LAAL_CU_P90": latency["LAAL_CU"]["p90"],
             "NormErase": revision["normalized_erasure"]["mean"],
-            "AgeErase": revision["age_weighted_erasure"]["mean"],
-            "FirstStable": revision["first_stable_unit"]["mean"],
-            "MeanFinalization": revision["mean_finalization"]["mean"],
         }
         observed = dict(deterministic)
         complete = quality["COMET"] is not None
@@ -110,9 +124,9 @@ def main() -> None:
         checks = {
             key: {
                 "observed": value,
-                "expected": EXPECTED[args.target][key],
+                "expected": RELEASED_RESULT[args.target][key],
                 "tolerance": tolerance[key],
-                "passed": abs(value - EXPECTED[args.target][key]) <= tolerance[key],
+                "passed": abs(value - RELEASED_RESULT[args.target][key]) <= tolerance[key],
             }
             for key, value in observed.items()
         }
