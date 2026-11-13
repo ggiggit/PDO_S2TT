@@ -14,12 +14,10 @@
   "files": {
     "pdo_s2tt.pt": {
       "bytes": 73081597,
-      "sha256": "194fba85b1a87547b1d180d0d98416cdd7ee694dceb6f8a53577fec9a37a08da",
       "format": "pdo-s2tt-inference-v1"
     },
     "pdo_s2tt_sft.pt": {
       "bytes": 73076981,
-      "sha256": "10e6cb0c9b7f739bfc60ac3456dadc55c487dce57ee131d6e2d437d714ca1f78",
       "format": "pdo-s2tt-sft-v1"
     }
   }

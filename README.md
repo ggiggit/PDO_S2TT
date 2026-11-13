@@ -1,5 +1,7 @@
 # Persistent Delivery Optimization for Streaming Speech-to-Text Translation with Revisions
 
+[English](README.md) | [简体中文](README_zh-CN.md)
+
 Official code and checkpoints for
 [*Persistent Delivery Optimization for Streaming Speech-to-Text Translation with Revisions*](https://arxiv.org/abs/2609.26427),
 submitted to **ICASSP 2027**.
@@ -31,10 +33,10 @@ The released weights are mirrored on
 [Hugging Face](https://huggingface.co/hf-wzx1205/PDO_S2TT) and
 [ModelScope](https://modelscope.cn/models/wanzixiang/PDO_S2TT).
 
-| File | Use | SHA-256 | Download |
-|:--|:--|:--|:--|
-| `pdo_s2tt.pt` | Latest five-language finite-window PDO checkpoint | `194fba85b1a87547b1d180d0d98416cdd7ee694dceb6f8a53577fec9a37a08da` | [Download](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/main/pdo_s2tt.pt) |
-| `pdo_s2tt_sft.pt` | Latest five-language finite-window SFT initialization | `10e6cb0c9b7f739bfc60ac3456dadc55c487dce57ee131d6e2d437d714ca1f78` | [Download](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/main/pdo_s2tt_sft.pt) |
+| File | Use | Download |
+|:--|:--|:--|
+| `pdo_s2tt.pt` | Latest five-language finite-window PDO checkpoint | [Download](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/main/pdo_s2tt.pt) |
+| `pdo_s2tt_sft.pt` | Latest five-language finite-window SFT initialization | [Download](https://huggingface.co/hf-wzx1205/PDO_S2TT/blob/main/pdo_s2tt_sft.pt) |
 
 Both checkpoints use one shared five-language model with a 24-second acoustic
 window, 12 two-second events, six-event retirement, and a 128-token visible

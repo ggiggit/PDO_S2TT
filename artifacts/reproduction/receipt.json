@@ -8,13 +8,10 @@
   "training": {
     "rollout_rounds": 407,
     "adam_updates": 1625,
-    "elapsed_seconds": 35046.17105150223,
-    "model_fingerprint": "5afc75eab69c19b33e4b551b0c5710f9088f723b86963efcb63938a0945ae2de"
+    "elapsed_seconds": 35046.17105150223
   },
   "artifacts": {
     "repository": "https://huggingface.co/hf-wzx1205/PDO_S2TT-reproduction",
-    "inference_checkpoint_sha256": "bd6bc20f5a8dddd33991822bc17015b985932193abb0f7496d4e5a4df2081129",
-    "training_state_sha256": "c3e94d3be46593cbf32bf66a5f5e55fd481484020cd1217ba3dfc4a466ae0e79",
     "training_state_contains": ["policy", "optimizer", "rounds", "adam_updates"]
   },
   "fleurs_test": {

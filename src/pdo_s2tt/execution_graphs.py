@@ -1142,14 +1142,10 @@ class CudaGraphDecoderLayerBank:
 
             slot["attention"].copy_(attention_output)
             slot["tail_graph"].replay()
-            layer_hooks_present = bool(layer._forward_pre_hooks or layer._forward_hooks)
-            output = slot["tail_output"].clone() if layer_hooks_present else slot["tail_output"]
+            output = slot["tail_output"].clone()
             self.stats["replays"] += 1
             self.stats["calls"] += 1
-            if layer_hooks_present:
-                self.stats["cloned_outputs"] += 1
-            else:
-                self.stats["borrowed_outputs"] += 1
+            self.stats["cloned_outputs"] += 1
             if not slot["verified"]:
                 reference = _decoder_tail(layer, hidden_states, attention_output)
                 if not torch.equal(output, reference):
@@ -1183,7 +1179,7 @@ class CudaGraphDecoderLayerBank:
             "graph_allocator_workspace_included": False,
             "native_cache_mask_and_attention": True,
             "borrowed_prelude_outputs": True,
-            "tail_output_contract": "owned clone for layer hooks; otherwise borrowed until same layer slot replays",
+            "tail_output_contract": "owned clone on every decoder-layer replay",
         }
 
     def close(self) -> None:
