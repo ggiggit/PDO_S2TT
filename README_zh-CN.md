@@ -2,25 +2,29 @@
 
 [English](README.md) | [简体中文](README_zh-CN.md)
 
-本文档介绍论文 [*Persistent Delivery Optimization for Streaming Speech-to-Text Translation with Revisions*](https://arxiv.org/abs/2609.26427) 的官方代码与模型。论文已投稿 **ICASSP 2027**。
+论文 [*Persistent Delivery Optimization for Streaming Speech-to-Text Translation with Revisions*](https://arxiv.org/abs/2609.26427) 的官方代码与模型权重。论文已投稿 **ICASSP 2027**。
 
-[Hugging Face 模型](https://huggingface.co/hf-wzx1205/PDO_S2TT) · [ModelScope 模型](https://modelscope.cn/models/wanzixiang/PDO_S2TT) · [Apache-2.0 许可证](LICENSE)
+[![arXiv](https://img.shields.io/badge/arXiv-2609.26427-b31b1b.svg)](https://arxiv.org/abs/2609.26427)
+[![Hugging Face](https://img.shields.io/badge/🤗_Hugging_Face-model_weights-FFD21E)](https://huggingface.co/hf-wzx1205/PDO_S2TT)
+[![ModelScope](https://img.shields.io/badge/ModelScope-model_weights-624AFF)](https://modelscope.cn/models/wanzixiang/PDO_S2TT)
+[![Tests](https://github.com/ggiggit/PDO_S2TT/actions/workflows/tests.yml/badge.svg)](https://github.com/ggiggit/PDO_S2TT/actions/workflows/tests.yml)
+[![License](https://img.shields.io/badge/License-Apache--2.0-4C8BF5)](LICENSE)
 
 **直接流式语音翻译 · 面向修订的训练 · 五种目标语言**
 
-PDO 训练流式语音翻译模型尽早输出，并让已经显示的内容尽量保持稳定。模型直接把持续到来的英语语音翻译成可修订的中文、德语、西班牙语、日语或法语，不向用户展示中间转写。
+PDO 训练流式语音翻译模型尽早输出，并让已经显示的内容尽量保持不变。模型直接把持续到来的英语语音翻译成可修订的中文、德语、西班牙语、日语或法语，不向用户展示中间转写。
 
-## 从这里开始
+## 选择使用路径
 
-| 目标 | 文档 | 内容 |
+| 我想…… | 从这里开始 | 包含内容 |
 |:--|:--|:--|
 | **运行模型** | [推理与评测](docs/inference.md) | 安装、下载模型、单条 WAV、FLEURS TEST 和完整指标 |
-| **训练 PDO** | [训练复现](docs/training.md) | SFT 初始化、四卡训练、断点恢复和 DEV 选择 |
-| **对照论文与代码** | [论文公式与实现](docs/paper-to-code.md) | 公式、奖励、采样、损失和 LAAL-CU 的实现位置 |
+| **训练 PDO** | [训练复现](docs/training.md) | SFT 初始化、四卡命令、断点恢复、完整方案和 DEV 选择 |
+| **对照论文公式与代码** | [论文 ↔ 代码](docs/paper-to-code.md) | 公式 (1)–(4)、奖励单位、基线、采样、损失和 LAAL-CU |
 
 ## 模型权重
 
-模型同时发布在 [Hugging Face](https://huggingface.co/hf-wzx1205/PDO_S2TT) 和 [ModelScope](https://modelscope.cn/models/wanzixiang/PDO_S2TT)。
+发布权重同时镜像在 [Hugging Face](https://huggingface.co/hf-wzx1205/PDO_S2TT) 和 [ModelScope](https://modelscope.cn/models/wanzixiang/PDO_S2TT)。
 
 | 文件 | 用途 | 下载 |
 |:--|:--|:--|
@@ -47,7 +51,7 @@ hf download hf-wzx1205/PDO_S2TT pdo_s2tt.pt --local-dir checkpoints
 bash scripts/run_fleurs.sh
 ```
 
-默认命令会下载官方 FLEURS TEST，并评测全部 647 条英译中样本。英译德、英译西、英译日、英译法以及五语汇总命令已写在 [`scripts/run_fleurs.sh`](scripts/run_fleurs.sh) 中。
+默认命令会下载官方 FLEURS TEST，并复现全部 647 条英译中样本。英译德、英译西、英译日、英译法以及五语汇总命令已包含在 [`scripts/run_fleurs.sh`](scripts/run_fleurs.sh) 中并以注释形式保留。
 
 ## 快速训练
 
@@ -61,29 +65,36 @@ bash scripts/train_pdo.sh
 
 固定训练方案使用 4 张 24 GB GPU，运行 407 轮 rollout 和 1,625 次 AdamW 更新；每轮都会保存推理模型和可恢复的优化器状态。完整训练前请先阅读[训练说明](docs/training.md)。
 
+<details>
+<summary><strong>独立公开代码复现</strong></summary>
+
+发布的训练路径已从 SFT 初始化开始，独立运行完全部 407 轮训练和五个方向的 TEST 评测。详细日志、优化器状态、预测结果和指标记录在[复现记录](docs/reproduction.md)中；大型产物托管在[独立归档](https://huggingface.co/hf-wzx1205/PDO_S2TT-reproduction)。
+
+</details>
+
 ## 评测结果
 
-最新有限窗口 PDO 模型使用与论文一致的五语 FLEURS TEST：每个方向 647 条，共 3,235 次会话。
+最新有限窗口 PDO 模型使用同一套五语 FLEURS TEST 评测：每个方向 647 条，共 3,235 次会话。
 
 | BLEU ↑ | COMET ×100 ↑ | chrF++ ↑ | FRD ↓ | 稳定词 LAAL-CU ↓ | 归一化撤回量 ↓ | RTF ↓ |
 |--:|--:|--:|--:|--:|--:|--:|
 | 31.2355 | 85.1594 | 44.4709 | 2.2782 秒 | 3.0057 秒 | 0.9211 | 0.3213 |
 
-FRD 和 RTF 会受到硬件与运行环境影响。质量、稳定词 LAAL-CU 和修订指标采用论文中的定义。五个方向的测试均保持有界音频状态。
+FRD 和 RTF 会受到硬件与运行环境影响。质量、稳定词 LAAL-CU 和修订指标采用论文中的相同定义。五个方向的测试均保持有界音频状态。
 
-原论文模型的表 2 保留如下：
+作为参考，原论文模型的表 2 保留如下：
 
-![论文表 2：FLEURS TEST 结果](assets/table2.png)
+![论文表 2：域内 FLEURS TEST 结果](assets/table2.png)
 
 ## 仓库结构
 
 ```text
 src/                       模型、流式运行时、PDO 和指标
 scripts/                   推理、评测和训练入口
-docs/                      推理、训练和论文实现说明
+docs/                      上述三份重点说明
 artifacts/reproduction/    轻量训练与评测记录
-references/                固定的 FLEURS 样本与训练目标
-tests/                     奖励、策略、评测与数据清单测试
+references/                固定的 FLEURS 样本身份与 TRAIN 目标
+tests/                     奖励、策略、评测器和清单测试
 ```
 
 ## 许可证
