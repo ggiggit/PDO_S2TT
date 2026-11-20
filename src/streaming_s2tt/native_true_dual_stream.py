@@ -39,6 +39,25 @@ from .native_dual_stream import (
 from .text_smt_turns import turn_prefix_ids
 
 
+def _adapter_layers(model) -> tuple:
+    try:
+        from peft.tuners.tuners_utils import BaseTunerLayer
+    except (ImportError, AttributeError):
+        return ()
+    return tuple(module for module in model.modules() if isinstance(module, BaseTunerLayer))
+
+
+def _set_adapter_if_needed(model, layers: tuple, adapter_name: str | None) -> None:
+    if adapter_name is None or not hasattr(model, "set_adapter"):
+        return
+    wanted = (str(adapter_name),)
+    if tuple(getattr(model, "active_adapters", ())) == wanted and all(
+        tuple(layer.active_adapters) == wanted for layer in layers
+    ):
+        return
+    model.set_adapter(adapter_name)
+
+
 @dataclass
 class NativeBranchCache:
     """Persistent state for one logical text stream."""
@@ -140,6 +159,7 @@ class NativeTrueDualQwenDecoder:
         # source worker must not switch adapters while the target branch is in
         # the middle of a forward on the same Qwen instance.
         self._llm_lock = RLock()
+        self._adapter_layers = _adapter_layers(llm)
         self.tokenizer = tokenizer
         self.source_wait_ids = _wait_ids(
             wait_id if source_wait_id is None else source_wait_id
@@ -366,8 +386,7 @@ class NativeTrueDualQwenDecoder:
         else:
             kwargs["inputs_embeds"] = inputs_embeds
         with self._llm_lock:
-            if adapter_name is not None and hasattr(self.llm, "set_adapter"):
-                self.llm.set_adapter(adapter_name)
+            _set_adapter_if_needed(self.llm, self._adapter_layers, adapter_name)
             output = self.llm(**kwargs)
         branch.past_key_values = output.past_key_values
         branch.attention_length = total
@@ -403,8 +422,9 @@ class NativeTrueDualQwenDecoder:
         with self._llm_lock:
             if self.source_decode:
                 source_ids = native_system_prompt(self.tokenizer).to(device).unsqueeze(0)
-                if self.source_adapter_name is not None and hasattr(self.llm, "set_adapter"):
-                    self.llm.set_adapter(self.source_adapter_name)
+                _set_adapter_if_needed(
+                    self.llm, self._adapter_layers, self.source_adapter_name
+                )
                 source_output = self.llm(
                     input_ids=source_ids,
                     attention_mask=torch.ones_like(source_ids),
@@ -414,8 +434,9 @@ class NativeTrueDualQwenDecoder:
                 source_cache = NativeBranchCache(
                     source_output.past_key_values, source_ids.size(1)
                 )
-            if self.target_adapter_name is not None and hasattr(self.llm, "set_adapter"):
-                self.llm.set_adapter(self.target_adapter_name)
+            _set_adapter_if_needed(
+                self.llm, self._adapter_layers, self.target_adapter_name
+            )
             target_output = self.llm(
                 input_ids=target_ids,
                 attention_mask=torch.ones_like(target_ids),
